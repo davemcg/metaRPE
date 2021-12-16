@@ -40,6 +40,7 @@ metadata_abca4KO
 
 # OCA (Brooks (Aman)) and Bharti (Ruchi, Karla))
 repo: oca_rna-seq
+meta: done
 ```{r}
 #all sample / lanes
 lane_metadata <- read_csv('../data/oca_rna-seq/sequence_metadata.csv')
@@ -69,32 +70,36 @@ ruchi_metadata <- cbind(sample, cell_line, treatment_hours, serum, drug) %>% dat
 
 # Aman (OCA)
 rpe <- tibble::tribble(
-           ~Name,     ~sample, ~Volume,   ~Concentration, ~Source,
-        "OCA2",   "AG1", 10L, 158.2,   "OCA9 (SAMPLE1)",
-        "OCA2",   "AG2", 10L, 108.5, "OCA103 (SAMPLE4)",
-        "OCA2",   "AG3", 15L,  84.8,  "OCA71 (SAMPLE7)",
-       "OCA1A",   "AG4", 10L,   143,  "OCA8 (SAMPLE10)",
-       "OCA1A",   "AG5", 10L, 123.1, "OCA26 (SAMPLE13)")
+  ~Name,     ~sample, ~Volume,   ~Concentration, ~Source,
+  "OCA2",   "AG1", 10L, 158.2,   "OCA9 (SAMPLE1)",
+  "OCA2",   "AG2", 10L, 108.5, "OCA103 (SAMPLE4)",
+  "OCA2",   "AG3", 15L,  84.8,  "OCA71 (SAMPLE7)",
+  "OCA1A",   "AG4", 10L,   143,  "OCA8 (SAMPLE10)",
+  "OCA1A",   "AG5", 10L, 123.1, "OCA26 (SAMPLE13)")
 fib <- tibble::tribble(
-                    ~sample, ~Genotype,
-                    "AMDCD1",                     "WT",
-                   "AMDCD2",                    "WT",
-                     "ATW1",                    "WT",
-                     "ATW2",                    "WT",
-                     "OTW1", "Compound heterozygous",
-                     "OTW2", "Compound heterozygous",
-                     "STW1",          "Heterozygous",
-                     "STW2",          "Heterozygous",
-                    "VCEQ1", "Compound heterozygous",
-                    "VCEQ2", "Compound heterozygous",
-                     "VED1",          "Heterozygous",
-                     "VED2",          "Heterozygous"
-                   )
+  ~sample, ~Genotype,
+  "AMDCD1",                     "WT",
+  "AMDCD2",                    "WT",
+  "ATW1",                    "WT",
+  "ATW2",                    "WT",
+  "OTW1", "Compound heterozygous",
+  "OTW2", "Compound heterozygous",
+  "STW1",          "Heterozygous",
+  "STW2",          "Heterozygous",
+  "VCEQ1", "Compound heterozygous",
+  "VCEQ2", "Compound heterozygous",
+  "VED1",          "Heterozygous",
+  "VED2",          "Heterozygous"
+)
 rpe$Cell <- 'iRPE'
 fib$Cell <- 'Fibroblast'
 
-aman_metadata <- bind_rows(rpe, fib)
-aman_metadata %>% DT::datatable(rownames = F)
+aman_metadata <- bind_rows(rpe, fib) %>% 
+  rename(CellType = Cell) %>% 
+  mutate(cell_line = Source, 
+         Owner = 'Aman',
+         Class = case_when(Genotype == 'WT' ~ 'Control',
+                           TRUE ~ 'Perturbed')) 
 
 
 
@@ -119,54 +124,22 @@ karla_metadata <- rbind(
                            grepl('Nox4', Condition) ~ 'Nox4',
                            TRUE ~ 'None'),
          State = case_when(grepl('Monolayer', Condition) ~ 'Monolayer',
-                           TRUE ~ 'Trypsinized'))
+                           TRUE ~ 'Trypsinized'),
+         Owner = 'Karla',
+         CellType = 'iRPE',
+         Class = case_when( shRNA %in% c('Ctrl', 'None') & State == 'Monolayer' ~ 'Control',
+                            TRUE ~ 'Pertubed')) %>% 
+  rename(cell_line = `Cell Line`)
 
 
 
 
 
+# bind all three
+oca_meta <- bind_rows(karla_metadata, aman_metadata, ruchi_metadata)
 
 
-
-
-
-
-
-
-
-#lane_metadata
-
-oca_full_metadata <- left_join(sample_metadata, lane_metadata, by=c('sample' = 'submitted_name'))
-oca_full_metadata %>% filter(serum == 'None', drug == 'None', treatment_hours == 0)
-
-
-data_dir <- '/Volumes/data/projects/nei/brooks/oca_rna-seq/salmon_quant/'
-files <- list.files(path=data_dir,recursive=TRUE,pattern='quant.sf')
-
-# make files to copy from oca rna seq project to abca4 project for salmon quant
-cp <- oca_full_metadata %>% 
-  filter(treatment_hours == 0) %>%  
-  left_join(., files %>% enframe() %>% 
-              mutate(lane_sample = gsub('/quant.sf','',value))) %>% 
-  mutate(cp = paste0('cp /data/mcgaugheyd/projects/nei/brooks/oca_rna-seq/fastq_files/', 
-                     lane_sample, '* .')) 
-#cp$cp %>% writeLines()
-# command to add nisc path info to nisc_lane_info.txt
-# grep "HM7FMBBXX_16496360_S56_L005\\|HM7FMBBXX_16496360_S56_L005\\|HMLLWBBXX_16496360_S69_L008\\|HMLLWBBXX_16496360_S69_L008\\|HMLLWBBXX_16496360_S69_L006\\|HMLLWBBXX_16496360_S69_L006\\|HMLLWBBXX_16496360_S69_L007\\|HMLLWBBXX_16496360_S69_L007\\|HM7FMBBXX_16496358_S54_L005\\|HM7FMBBXX_16496358_S54_L005\\|HMLLWBBXX_16496358_S67_L008\\|HMLLWBBXX_16496358_S67_L008\\|HMLLWBBXX_16496358_S67_L007\\|HMLLWBBXX_16496358_S67_L007\\|HMLLWBBXX_16496358_S67_L006\\|HMLLWBBXX_16496358_S67_L006\\|HM7FMBBXX_16496356_S52_L005\\|HM7FMBBXX_16496356_S52_L005\\|HMLLWBBXX_16496356_S65_L007\\|HMLLWBBXX_16496356_S65_L007\\|HMLLWBBXX_16496356_S65_L006\\|HMLLWBBXX_16496356_S65_L006\\|HMLLWBBXX_16496356_S65_L008\\|HMLLWBBXX_16496356_S65_L008" ~/git/oca_rna-seq/data/nisc_file_paths.txt
-
-# with copies of fastq can use abca4 dir
-data_dir <- '/Volumes/data/projects/nei/bharti/abca4_ko_ipsc_rpe__mitra/salmon_quant/'
-oca_meta <- oca_full_metadata %>% 
-  filter(treatment_hours == 0) %>%  
-  left_join(., files %>% enframe() %>% 
-              mutate(lane_sample = gsub('/quant.sf','',value))) %>% 
-  dplyr::select(sample, cell_line, value) %>% filter(!is.na(value)) %>% 
-  mutate(full_path = paste0(data_dir, value)) %>% 
-  dplyr::select(Sample = cell_line, sample, full_path) %>% 
-  mutate(Treatment = 'Control', ABCA4 = 'WT', Group = 'Control_WT', `Sample ID  Validation` = sample)
-
-metadata <- bind_rows(metadata, oca_meta) 
-
+oca_metadata <- lane_metadata %>% left_join(oca_meta, by = c('submitted_name' = 'sample'))
 ```
 
 # iRPE Dev Time Series (Irina)
