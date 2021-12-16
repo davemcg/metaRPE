@@ -1,0 +1,182 @@
+---
+title: "Scavenger Hunt"
+output: html_notebook
+---
+
+Find the Bharti (?) iRPE RNA-seq datasets (published and unpublished)
+
+# ABCA4 KO (Mitra)
+repo: abca4_ko_ipsc_rpe
+meta: done
+```{r}
+library(tidyverse)
+data_dir <- '/Volumes/data/projects/nei/bharti/abca4_ko_ipsc_rpe__mitra/salmon_quant/'
+
+nisc_meta <- read_tsv('../data/abca4_ko_ipsc_rpe/Brooks_ABCA4_RPE.report.txt') %>% as_tibble()
+metadata_abca4KO <- readxl::read_xlsx('../data/abca4_ko_ipsc_rpe/Brooks ABCA4_RPE  RNA seqIllumina_Sample_Submission_Form.xlsx', skip = 22, sheet = 'Sample Form') %>% 
+  filter(!is.na(`Sample ID ***`), !grepl('Tubes should', `Sample ID ***`) ) %>% 
+  dplyr::rename(Sample = 'Sample ID ***') %>% 
+  mutate(Treatment = case_when(grepl('\\+', Sample) ~ 'OS',
+                               TRUE ~ 'Control'),
+         ABCA4 = case_when(grepl('^C\\d\\d', Sample) ~ 'KO',
+                           TRUE ~ 'WT')) %>% 
+  mutate(Group = paste0(Treatment, '_', ABCA4)) %>% as_tibble()
+metadata_abca4KO <- metadata_abca4KO %>% 
+  mutate(submitted_name = gsub('-','_', `Sample ID  Validation`)) %>% 
+  left_join(nisc_meta) %>% 
+  rowwise() %>% 
+  mutate(file_path = gsub('_R[1|2]_001.fastq.gz','', file_name) %>% 
+           paste0(., '/quant.sf'),
+         SampleCore = str_split(Sample, '[+|\\s]')[[1]][1]) %>% 
+  mutate(SampleCore = case_when(SampleCore == 'STAPFKR' ~ 'STAP',
+                                TRUE ~ SampleCore)) %>% 
+  dplyr::select(-file_name) %>% 
+  unique() %>% 
+  ungroup() %>% 
+  mutate(full_path = paste0(data_dir, file_path)) 
+
+metadata_abca4KO
+```
+
+# OCA (Brooks (Aman)) and Bharti (Ruchi, Karla))
+repo: oca_rna-seq
+```{r}
+#all sample / lanes
+lane_metadata <- read_csv('../data/oca_rna-seq/sequence_metadata.csv')
+lane_metadata <- lane_metadata  %>% rowwise() %>% mutate(lane_sample = str_split(file_name, '_R[1/2]')[[1]][1])
+lane_metadata <- lane_metadata %>% 
+  rowwise() %>% 
+  mutate(Lane = str_split(lane_sample, '_')[[1]][4],
+         FlowCell = str_split(lane_sample, '_')[[1]][1]) %>% 
+  ungroup()
+
+
+# Ruchi (HI/HIHS)
+sample <- paste0(seq(1:21), "_RS")
+treatment_hours <- rep(c(0,24,48,48,48,48,48),3)
+cell_line <- c(rep('AMDCD',7), rep('3D1',7), rep('Z8', 7))
+serum <- rep(c('None', 'HS', 'HS', 'HIHS', 'HS', 'HS', 'HS'), 3)
+drug <- rep(c('None', 'None', 'None', 'None', 'Drug 1', 'Drug 3', 'Drug 4'), 3)
+ruchi_metadata <- cbind(sample, cell_line, treatment_hours, serum, drug) %>% data.frame(stringsAsFactors = FALSE) %>% 
+  mutate(DrugSimple = case_when(grepl('Drug', drug) ~ 'Drug',
+                                TRUE ~ 'None'),
+         Class = case_when(serum %in% c('None', 'HIHS') & drug == 'None' ~ 'Control',
+                           TRUE ~ 'Perturbed'),
+         Owner = 'Ruchi',
+         CellType = 'iRPE')
+
+
+
+# Aman (OCA)
+rpe <- tibble::tribble(
+           ~Name,     ~sample, ~Volume,   ~Concentration, ~Source,
+        "OCA2",   "AG1", 10L, 158.2,   "OCA9 (SAMPLE1)",
+        "OCA2",   "AG2", 10L, 108.5, "OCA103 (SAMPLE4)",
+        "OCA2",   "AG3", 15L,  84.8,  "OCA71 (SAMPLE7)",
+       "OCA1A",   "AG4", 10L,   143,  "OCA8 (SAMPLE10)",
+       "OCA1A",   "AG5", 10L, 123.1, "OCA26 (SAMPLE13)")
+fib <- tibble::tribble(
+                    ~sample, ~Genotype,
+                    "AMDCD1",                     "WT",
+                   "AMDCD2",                    "WT",
+                     "ATW1",                    "WT",
+                     "ATW2",                    "WT",
+                     "OTW1", "Compound heterozygous",
+                     "OTW2", "Compound heterozygous",
+                     "STW1",          "Heterozygous",
+                     "STW2",          "Heterozygous",
+                    "VCEQ1", "Compound heterozygous",
+                    "VCEQ2", "Compound heterozygous",
+                     "VED1",          "Heterozygous",
+                     "VED2",          "Heterozygous"
+                   )
+rpe$Cell <- 'iRPE'
+fib$Cell <- 'Fibroblast'
+
+aman_metadata <- bind_rows(rpe, fib)
+aman_metadata %>% DT::datatable(rownames = F)
+
+
+
+# karla
+karla_metadata <- rbind(
+  c('KB#1','Ctrl shRNA Monolayer','Best 4C'),
+  c('KB#2','Nox4 shRNA Monolayer','Best 4C'),
+  c('KB#3','Intact Monolayer ','Best 4C'),
+  c('KB#4','Ctrl shRNA Monolayer','Tuba 1B'),
+  c('KB#5','Nox4 shRNA Monolayer','Tuba 1B'),
+  c('KB#6','Intact Monolayer','Tuba 1B'),
+  c('KB#7','Ctrl shRNA Trypsinized','Best 4C'),
+  c('KB#8','Nox4 shRNA Trypsinized','Best 4C'),
+  c('KB#9','Trypsinized','Best 4C'),
+  c('KB#10','Ctrl shRNA Trypsinized','Tuba 1B'),
+  c('KB#11','Nox4 shRNA Trypsinized','Tuba 1B'),
+  c('KB#12','Trypsinized','Tuba 1B')) %>%
+  data.frame() %>% 
+  rename(sample = X1, Condition = X2, `Cell Line` = X3) %>% 
+  mutate(sample=gsub('#', '', sample)) %>% 
+  mutate(shRNA = case_when(grepl('Ctrl', Condition) ~ 'Ctrl', 
+                           grepl('Nox4', Condition) ~ 'Nox4',
+                           TRUE ~ 'None'),
+         State = case_when(grepl('Monolayer', Condition) ~ 'Monolayer',
+                           TRUE ~ 'Trypsinized'))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#lane_metadata
+
+oca_full_metadata <- left_join(sample_metadata, lane_metadata, by=c('sample' = 'submitted_name'))
+oca_full_metadata %>% filter(serum == 'None', drug == 'None', treatment_hours == 0)
+
+
+data_dir <- '/Volumes/data/projects/nei/brooks/oca_rna-seq/salmon_quant/'
+files <- list.files(path=data_dir,recursive=TRUE,pattern='quant.sf')
+
+# make files to copy from oca rna seq project to abca4 project for salmon quant
+cp <- oca_full_metadata %>% 
+  filter(treatment_hours == 0) %>%  
+  left_join(., files %>% enframe() %>% 
+              mutate(lane_sample = gsub('/quant.sf','',value))) %>% 
+  mutate(cp = paste0('cp /data/mcgaugheyd/projects/nei/brooks/oca_rna-seq/fastq_files/', 
+                     lane_sample, '* .')) 
+#cp$cp %>% writeLines()
+# command to add nisc path info to nisc_lane_info.txt
+# grep "HM7FMBBXX_16496360_S56_L005\\|HM7FMBBXX_16496360_S56_L005\\|HMLLWBBXX_16496360_S69_L008\\|HMLLWBBXX_16496360_S69_L008\\|HMLLWBBXX_16496360_S69_L006\\|HMLLWBBXX_16496360_S69_L006\\|HMLLWBBXX_16496360_S69_L007\\|HMLLWBBXX_16496360_S69_L007\\|HM7FMBBXX_16496358_S54_L005\\|HM7FMBBXX_16496358_S54_L005\\|HMLLWBBXX_16496358_S67_L008\\|HMLLWBBXX_16496358_S67_L008\\|HMLLWBBXX_16496358_S67_L007\\|HMLLWBBXX_16496358_S67_L007\\|HMLLWBBXX_16496358_S67_L006\\|HMLLWBBXX_16496358_S67_L006\\|HM7FMBBXX_16496356_S52_L005\\|HM7FMBBXX_16496356_S52_L005\\|HMLLWBBXX_16496356_S65_L007\\|HMLLWBBXX_16496356_S65_L007\\|HMLLWBBXX_16496356_S65_L006\\|HMLLWBBXX_16496356_S65_L006\\|HMLLWBBXX_16496356_S65_L008\\|HMLLWBBXX_16496356_S65_L008" ~/git/oca_rna-seq/data/nisc_file_paths.txt
+
+# with copies of fastq can use abca4 dir
+data_dir <- '/Volumes/data/projects/nei/bharti/abca4_ko_ipsc_rpe__mitra/salmon_quant/'
+oca_meta <- oca_full_metadata %>% 
+  filter(treatment_hours == 0) %>%  
+  left_join(., files %>% enframe() %>% 
+              mutate(lane_sample = gsub('/quant.sf','',value))) %>% 
+  dplyr::select(sample, cell_line, value) %>% filter(!is.na(value)) %>% 
+  mutate(full_path = paste0(data_dir, value)) %>% 
+  dplyr::select(Sample = cell_line, sample, full_path) %>% 
+  mutate(Treatment = 'Control', ABCA4 = 'WT', Group = 'Control_WT', `Sample ID  Validation` = sample)
+
+metadata <- bind_rows(metadata, oca_meta) 
+
+```
+
+# iRPE Dev Time Series (Irina)
+repo: bharti_irina_iPSC_RPE_time_series-
+
+# Peripheral - Fovea iRPE (Ortolan)
+repo: ortolan_rpe_macula_peripheral_scRNA
+
+# Piezo1 KO iRPE (Qin)
+repo: qin_piezo1_iRPE_2021
+
+# WNT CEP290 iRPE (Dominik)
+repo: dominik_WNT_iRPE_2021
