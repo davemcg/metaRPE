@@ -11,35 +11,38 @@ meta: done
 ```{r}
 library(tidyverse)
 library(cowplot)
-data_dir <- '/Volumes/data/projects/nei/bharti/abca4_ko_ipsc_rpe__mitra/salmon_quant/'
+# data_dir <- '/Volumes/data/projects/nei/bharti/abca4_ko_ipsc_rpe__mitra/salmon_quant/'
+# 
+# nisc_meta <- read_tsv('../data/abca4_ko_ipsc_rpe/Brooks_ABCA4_RPE.report.txt') %>% as_tibble()
+# metadata_abca4KO <- readxl::read_xlsx('../data/abca4_ko_ipsc_rpe/Brooks ABCA4_RPE  RNA seqIllumina_Sample_Submission_Form.xlsx', skip = 22, sheet = 'Sample Form') %>% 
+#   filter(!is.na(`Sample ID ***`), !grepl('Tubes should', `Sample ID ***`) ) %>% 
+#   dplyr::rename(Sample = 'Sample ID ***') %>% 
+#   mutate(Treatment = case_when(grepl('\\+', Sample) ~ 'OS',
+#                                TRUE ~ 'Control'),
+#          ABCA4 = case_when(grepl('^C\\d\\d', Sample) ~ 'KO',
+#                            TRUE ~ 'WT')) %>% 
+#   mutate(Group = paste0(Treatment, '_', ABCA4)) %>% as_tibble()
+# metadata_abca4KO <- metadata_abca4KO %>% 
+#   mutate(submitted_name = gsub('-','_', `Sample ID  Validation`)) %>% 
+#   left_join(nisc_meta) %>% 
+#   rowwise() %>% 
+#   mutate(file_path = gsub('_R[1|2]_001.fastq.gz','', file_name) %>% 
+#            paste0(., '/quant.sf'),
+#          SampleCore = str_split(Sample, '[+|\\s]')[[1]][1]) %>% 
+#   mutate(SampleCore = case_when(SampleCore == 'STAPFKR' ~ 'STAP',
+#                                 TRUE ~ SampleCore)) %>% 
+#   dplyr::select(-file_name) %>% 
+#   unique() %>% 
+#   ungroup() %>% 
+#   mutate(full_path = paste0(data_dir, file_path),
+#          Owner = 'Mitra',
+#          cell_line = SampleCore,
+#          Sample = `Sample ID  Validation`,
+#          Class = case_when(ABCA4 == 'WT' & Treatment == 'Control' ~ 'Control',
+#                          TRUE ~ 'Perturbed')) 
 
-nisc_meta <- read_tsv('../data/abca4_ko_ipsc_rpe/Brooks_ABCA4_RPE.report.txt') %>% as_tibble()
-metadata_abca4KO <- readxl::read_xlsx('../data/abca4_ko_ipsc_rpe/Brooks ABCA4_RPE  RNA seqIllumina_Sample_Submission_Form.xlsx', skip = 22, sheet = 'Sample Form') %>% 
-  filter(!is.na(`Sample ID ***`), !grepl('Tubes should', `Sample ID ***`) ) %>% 
-  dplyr::rename(Sample = 'Sample ID ***') %>% 
-  mutate(Treatment = case_when(grepl('\\+', Sample) ~ 'OS',
-                               TRUE ~ 'Control'),
-         ABCA4 = case_when(grepl('^C\\d\\d', Sample) ~ 'KO',
-                           TRUE ~ 'WT')) %>% 
-  mutate(Group = paste0(Treatment, '_', ABCA4)) %>% as_tibble()
-metadata_abca4KO <- metadata_abca4KO %>% 
-  mutate(submitted_name = gsub('-','_', `Sample ID  Validation`)) %>% 
-  left_join(nisc_meta) %>% 
-  rowwise() %>% 
-  mutate(file_path = gsub('_R[1|2]_001.fastq.gz','', file_name) %>% 
-           paste0(., '/quant.sf'),
-         SampleCore = str_split(Sample, '[+|\\s]')[[1]][1]) %>% 
-  mutate(SampleCore = case_when(SampleCore == 'STAPFKR' ~ 'STAP',
-                                TRUE ~ SampleCore)) %>% 
-  dplyr::select(-file_name) %>% 
-  unique() %>% 
-  ungroup() %>% 
-  mutate(full_path = paste0(data_dir, file_path),
-         Owner = 'Mitra',
-         cell_line = SampleCore,
-         Sample = `Sample ID  Validation`,
-         Class = case_when(ABCA4 == 'WT' & Treatment == 'Control' ~ 'Control',
-                         TRUE ~ 'Perturbed')) 
+write_tsv(metadata_abca4KO, file = '../data/metadata_abca4KO.tsv')
+metadata_abca4KO <- read_tsv('../data/metadata_abca4KO.tsv')
 
 metadata_abca4KO
 ```
