@@ -139,8 +139,8 @@ karla_metadata <- rbind(
                            TRUE ~ 'Trypsinized'),
          Owner = 'Karla',
          CellType = 'iRPE',
-         Class = case_when( shRNA %in% c('Ctrl', 'None') & State == 'Monolayer' ~ 'Control',
-                            TRUE ~ 'Perturbed')) %>% 
+         # even the "control" samples had a mock shRNA treatment
+         Class = 'Perturbed') %>% 
   rename(cell_line = `Cell Line`,
          Sample = sample,
          Treatment = shRNA)
@@ -212,12 +212,12 @@ qin_meta <- read_tsv('../data/qin_piezo1_iRPE_2021/meta.tsv') %>%
 
 # WNT CEP290 iRPE (Dominik)
 repo: dominik_WNT_iRPE_2021
-
+meta: done
 ```{r}
 dominik_meta <- readxl::read_xlsx('../data/dominik_WNT_iRPE_2021/Layout experiment.xlsx') %>% 
   rename(Sample = `Sample name`,
          cell_line = Cells) %>% 
-  mutate(Class = case_when(Treatment == 'CTRL' ~ 'Control',
+  mutate(Class = case_when(Treatment == 'CTRL'  & !grepl("CEP", cell_line)~ 'Control',
                            TRUE ~ 'Perturbed'),
          Owner = 'Dominik',
          CellType = 'iRPE')
@@ -232,7 +232,9 @@ ogvfb_meta <- bind_rows(dominik_meta,
           irina_meta,
           oca_meta,
           metadata_abca4KO) %>% 
-  relocate(Sample, cell_line, CellType, Treatment, Owner, Class)
+  relocate(Sample, cell_line, CellType, Treatment, Owner, Class) %>% 
+  mutate(Class = case_when(Sample %in% c('KB5','KB9','KB10','KB12','2_RS','3_RS','9_RS','10_RS','16_RS','17_RS') ~ 'Degeneration',
+         TRUE ~ Class))
 
 write_csv(ogvfb_meta %>% filter(Class == 'Control', CellType == 'iRPE'), file = '../data/control_meta_iRPE.csv')
 write_csv(ogvfb_meta %>% filter(Class == 'Control', CellType != 'iRPE'), file = '../data/control_meta_notRPE.csv')
