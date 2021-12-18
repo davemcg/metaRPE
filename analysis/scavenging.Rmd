@@ -10,6 +10,7 @@ repo: abca4_ko_ipsc_rpe
 meta: done
 ```{r}
 library(tidyverse)
+library(cowplot)
 data_dir <- '/Volumes/data/projects/nei/bharti/abca4_ko_ipsc_rpe__mitra/salmon_quant/'
 
 nisc_meta <- read_tsv('../data/abca4_ko_ipsc_rpe/Brooks_ABCA4_RPE.report.txt') %>% as_tibble()
@@ -33,7 +34,12 @@ metadata_abca4KO <- metadata_abca4KO %>%
   dplyr::select(-file_name) %>% 
   unique() %>% 
   ungroup() %>% 
-  mutate(full_path = paste0(data_dir, file_path)) 
+  mutate(full_path = paste0(data_dir, file_path),
+         Owner = 'Mitra',
+         cell_line = SampleCore,
+         Sample = `Sample ID  Validation`,
+         Class = case_when(ABCA4 == 'WT' & Treatment == 'Control' ~ 'Control',
+                         TRUE ~ 'Perturbed')) 
 
 metadata_abca4KO
 ```
@@ -64,7 +70,9 @@ ruchi_metadata <- cbind(sample, cell_line, treatment_hours, serum, drug) %>% dat
          Class = case_when(serum %in% c('None', 'HIHS') & drug == 'None' ~ 'Control',
                            TRUE ~ 'Perturbed'),
          Owner = 'Ruchi',
-         CellType = 'iRPE')
+         CellType = 'iRPE') %>% 
+  rename(Sample = sample,
+         Treatment = drug)
 
 
 
@@ -99,7 +107,8 @@ aman_metadata <- bind_rows(rpe, fib) %>%
   mutate(cell_line = Source, 
          Owner = 'Aman',
          Class = case_when(Genotype == 'WT' ~ 'Control',
-                           TRUE ~ 'Perturbed')) 
+                           TRUE ~ 'Perturbed')) %>% 
+  rename(Sample = sample)
 
 
 
@@ -128,8 +137,10 @@ karla_metadata <- rbind(
          Owner = 'Karla',
          CellType = 'iRPE',
          Class = case_when( shRNA %in% c('Ctrl', 'None') & State == 'Monolayer' ~ 'Control',
-                            TRUE ~ 'Pertubed')) %>% 
-  rename(cell_line = `Cell Line`)
+                            TRUE ~ 'Perturbed')) %>% 
+  rename(cell_line = `Cell Line`,
+         Sample = sample,
+         Treatment = shRNA)
 
 
 
@@ -139,17 +150,111 @@ karla_metadata <- rbind(
 oca_meta <- bind_rows(karla_metadata, aman_metadata, ruchi_metadata)
 
 
-oca_metadata <- lane_metadata %>% left_join(oca_meta, by = c('submitted_name' = 'sample'))
+oca_metadata <- lane_metadata %>% left_join(oca_meta, by = c('submitted_name' = 'Sample'))
 ```
 
 # iRPE Dev Time Series (Irina)
 repo: bharti_irina_iPSC_RPE_time_series-
-
+meta: done
+```{r}
+irina_meta <- read_tsv('../data/bharti_irina_iPSC_RPE_time_series-/ids.txt') %>% 
+  pivot_longer(-`Cell line`, names_to = 'Info', values_to = 'Sample') %>% 
+  mutate(Note = case_when(grepl('dup', `Cell line`) ~ "Duplicate")) %>% 
+  mutate(cell_line = gsub(' \\(.*', '', `Cell line`),
+         CellType = case_when(grepl('iPS', Info) ~ 'iPSC',
+                              TRUE ~ 'iRPE'),
+         Class = NA,
+         Owner = 'Irina')
+```
 # Peripheral - Fovea iRPE (Ortolan)
 repo: ortolan_rpe_macula_peripheral_scRNA
+meta: done
+```{r}
+ortolan_fq <- read_tsv('../data/ortolan_rpe_macula_peripheral/sample_table.tsv', col_names = c('info','fastq'))
+ortolan_meta <- readxl::read_xlsx(path = '../data/ortolan_rpe_macula_peripheral/NISC Sample Submission Form_Bharti_DO.xlsx', sheet = 'Submission Form', skip = 21)
+colnames(ortolan_meta)[9] <- 'info'
+ortolan_meta <- ortolan_meta %>% rowwise() %>% 
+  mutate(cell_line = str_split(info, ' ', simplify = TRUE)[1],
+         info = gsub(' ','_',info)) %>% 
+  filter(!is.na(`Sample ID***`), 
+         !grepl('Tubes', `Sample ID***`)) %>% 
+  mutate(Owner = 'Davide',
+         CellType = 'iRPE',
+         Class = case_when(grepl('DMSO', info) ~ 'Control',
+                           TRUE ~ 'Perturbed')) %>% 
+  rename(Sample = `Sample ID***`)
 
+```
 # Piezo1 KO iRPE (Qin)
 repo: qin_piezo1_iRPE_2021
+meta: done
+```{r}
+# working_dir <- '~/data/qin_piezo1_iRPE_2021/'
+# files <- list.files(path=working_dir,recursive=TRUE,pattern='quant.sf', full.names = TRUE)
+# 
+# meta <- files %>% enframe() %>% 
+#   mutate(sample = str_extract(value, 'Control_\\d|Drug_\\d'), 
+#          treatment = str_extract(value, str_extract(value, 'Control|Drug')),
+#          cell_line = 'D3C',
+#          Class = case_when(grepl('Control', treatment) ~ 'Control',
+#                            TRUE ~ 'Perturbed')) %>% 
+#   rename(fastq_path = value)
+# write_tsv(meta, file = '../data/qin_piezo1_iRPE_2021/meta.tsv')
+qin_meta <- read_tsv('../data/qin_piezo1_iRPE_2021/meta.tsv') %>% 
+  mutate(Owner = 'Qin',
+         CellType = 'iRPE') %>% 
+  rename(Sample = sample,
+         Treatment = treatment)
+```
 
 # WNT CEP290 iRPE (Dominik)
 repo: dominik_WNT_iRPE_2021
+
+```{r}
+dominik_meta <- readxl::read_xlsx('../data/dominik_WNT_iRPE_2021/Layout experiment.xlsx') %>% 
+  rename(Sample = `Sample name`,
+         cell_line = Cells) %>% 
+  mutate(Class = case_when(Treatment == 'CTRL' ~ 'Control',
+                           TRUE ~ 'Perturbed'),
+         Owner = 'Dominik',
+         CellType = 'iRPE')
+
+```
+
+# Merge all
+```{r}
+ogvfb_meta <- bind_rows(dominik_meta, 
+          qin_meta,
+          ortolan_meta,
+          irina_meta,
+          oca_meta,
+          metadata_abca4KO) %>% 
+  relocate(Sample, cell_line, CellType, Treatment, Owner, Class)
+
+write_csv(ogvfb_meta %>% filter(Class == 'Control', ), file = '../data/control_meta.csv')
+write_csv(ogvfb_meta %>% filter(Class == 'Control'), file = '../data/control_meta.csv')
+
+write_csv(ogvfb_meta %>% filter(Class != 'Control'), file = '../data/perturbed_meta.csv')
+write_csv(ogvfb_meta %>% filter(Class != 'Control'), file = '../data/perturbed_meta.csv')
+```
+
+# Quick Plots
+```{r, fig.width=4, fig.height=6}
+a <- ogvfb_meta %>% ggplot(aes(x=Class)) + geom_bar(position = position_dodge()) + 
+  cowplot::theme_cowplot() 
+b <- ogvfb_meta %>% ggplot(aes(x=Class, fill = Owner)) + geom_bar(position = position_dodge()) + 
+  cowplot::theme_cowplot() +
+  scale_fill_manual(values = pals::glasbey() %>% unname()) 
+c <- ogvfb_meta %>% 
+  mutate(Line = case_when(grepl('OCA', cell_line) ~ 'OCA Patient',
+                          cell_line == 'Best 4C' ~ 'BEST4C',
+                          TRUE  ~ cell_line)) %>% 
+  ggplot(aes(x=Line, fill = Class)) + geom_bar(position = position_dodge()) + 
+  cowplot::theme_cowplot() +
+  scale_fill_manual(values = pals::alphabet2() %>% unname()) +
+  coord_flip()
+
+# ab <- cowplot::plot_grid(a, b, ncol = 2)
+# cowplot::plot_grid(ab, c, ncol = 1, rel_heights = c(0.6,1))
+
+```

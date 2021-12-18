@@ -1,0 +1,7 @@
+name	fastq_path	sample	treatment	cell_line	Class
+1	/Users/mcgaugheyd/data/qin_piezo1_iRPE_2021//salmon_quant/Control_1/quant.sf	Control_1	Control	D3C	Control
+2	/Users/mcgaugheyd/data/qin_piezo1_iRPE_2021//salmon_quant/Control_2/quant.sf	Control_2	Control	D3C	Control
+3	/Users/mcgaugheyd/data/qin_piezo1_iRPE_2021//salmon_quant/Control_3/quant.sf	Control_3	Control	D3C	Control
+4	/Users/mcgaugheyd/data/qin_piezo1_iRPE_2021//salmon_quant/Drug_1/quant.sf	Drug_1	Drug	D3C	Perturbed
+5	/Users/mcgaugheyd/data/qin_piezo1_iRPE_2021//salmon_quant/Drug_2/quant.sf	Drug_2	Drug	D3C	Perturbed
+6	/Users/mcgaugheyd/data/qin_piezo1_iRPE_2021//salmon_quant/Drug_3/quant.sf	Drug_3	Drug	D3C	Perturbed
