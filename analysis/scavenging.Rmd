@@ -247,11 +247,13 @@ write_csv(ogvfb_meta %>% filter(Class != 'Control', CellType != 'iRPE'), file = 
 ```{r, fig.width=6, fig.height=8}
 a <- ogvfb_meta %>% ggplot(aes(x=Class)) + geom_bar(position = position_dodge()) + 
   cowplot::theme_cowplot() +
-  facet_wrap(~CellType)
+  facet_wrap(~CellType) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 b <- ogvfb_meta %>% ggplot(aes(x=Class, fill = Owner)) + geom_bar(position = position_dodge()) + 
   cowplot::theme_cowplot() +
   scale_fill_manual(values = pals::glasbey() %>% unname()) +
-  facet_wrap(~CellType)
+  facet_wrap(~CellType) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 c <- ogvfb_meta %>% 
   mutate(Line = case_when(grepl('OCA', cell_line) ~ 'OCA Patient',
                           cell_line == 'Best 4C' ~ 'BEST4C',
