@@ -41,7 +41,7 @@ library(cowplot)
 #          Class = case_when(ABCA4 == 'WT' & Treatment == 'Control' ~ 'Control',
 #                          TRUE ~ 'Perturbed')) 
 
-write_tsv(metadata_abca4KO, file = '../data/metadata_abca4KO.tsv')
+# write_tsv(metadata_abca4KO, file = '../data/metadata_abca4KO.tsv')
 metadata_abca4KO <- read_tsv('../data/metadata_abca4KO.tsv')
 
 metadata_abca4KO
@@ -234,20 +234,22 @@ ogvfb_meta <- bind_rows(dominik_meta,
           metadata_abca4KO) %>% 
   relocate(Sample, cell_line, CellType, Treatment, Owner, Class)
 
-write_csv(ogvfb_meta %>% filter(Class == 'Control', ), file = '../data/control_meta.csv')
-write_csv(ogvfb_meta %>% filter(Class == 'Control'), file = '../data/control_meta.csv')
+write_csv(ogvfb_meta %>% filter(Class == 'Control', CellType == 'iRPE'), file = '../data/control_meta_iRPE.csv')
+write_csv(ogvfb_meta %>% filter(Class == 'Control', CellType != 'iRPE'), file = '../data/control_meta_notRPE.csv')
 
-write_csv(ogvfb_meta %>% filter(Class != 'Control'), file = '../data/perturbed_meta.csv')
-write_csv(ogvfb_meta %>% filter(Class != 'Control'), file = '../data/perturbed_meta.csv')
+write_csv(ogvfb_meta %>% filter(Class != 'Control', CellType == 'iRPE'), file = '../data/perturbed_meta_iRPE.csv')
+write_csv(ogvfb_meta %>% filter(Class != 'Control', CellType != 'iRPE'), file = '../data/perturbed_meta_notRPE.csv')
 ```
 
 # Quick Plots
-```{r, fig.width=4, fig.height=6}
+```{r, fig.width=6, fig.height=8}
 a <- ogvfb_meta %>% ggplot(aes(x=Class)) + geom_bar(position = position_dodge()) + 
-  cowplot::theme_cowplot() 
+  cowplot::theme_cowplot() +
+  facet_wrap(~CellType)
 b <- ogvfb_meta %>% ggplot(aes(x=Class, fill = Owner)) + geom_bar(position = position_dodge()) + 
   cowplot::theme_cowplot() +
-  scale_fill_manual(values = pals::glasbey() %>% unname()) 
+  scale_fill_manual(values = pals::glasbey() %>% unname()) +
+  facet_wrap(~CellType)
 c <- ogvfb_meta %>% 
   mutate(Line = case_when(grepl('OCA', cell_line) ~ 'OCA Patient',
                           cell_line == 'Best 4C' ~ 'BEST4C',
@@ -255,9 +257,10 @@ c <- ogvfb_meta %>%
   ggplot(aes(x=Line, fill = Class)) + geom_bar(position = position_dodge()) + 
   cowplot::theme_cowplot() +
   scale_fill_manual(values = pals::alphabet2() %>% unname()) +
-  coord_flip()
+  coord_flip()+
+  facet_wrap(~CellType)
 
-# ab <- cowplot::plot_grid(a, b, ncol = 2)
-# cowplot::plot_grid(ab, c, ncol = 1, rel_heights = c(0.6,1))
+ab <- cowplot::plot_grid(a, b, ncol = 2)
+cowplot::plot_grid(ab, c, ncol = 1, rel_heights = c(0.6,1))
 
 ```
