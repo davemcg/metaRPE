@@ -42,7 +42,7 @@ library(cowplot)
 #                          TRUE ~ 'Perturbed')) 
 
 # write_tsv(metadata_abca4KO, file = '../data/metadata_abca4KO.tsv')
-metadata_abca4KO <- read_tsv('../data/metadata_abca4KO.tsv')
+metadata_abca4KO <- read_tsv('../data/metadata_abca4KO.tsv') %>% mutate(Repo = 'abca4_ko_ipsc_rpe')
 
 metadata_abca4KO
 ```
@@ -150,7 +150,7 @@ karla_metadata <- rbind(
 
 
 # bind all three
-oca_meta <- bind_rows(karla_metadata, aman_metadata, ruchi_metadata)
+oca_meta <- bind_rows(karla_metadata, aman_metadata, ruchi_metadata) %>% mutate(Repo = 'oca_rna-seq')
 
 
 oca_metadata <- lane_metadata %>% left_join(oca_meta, by = c('submitted_name' = 'Sample'))
@@ -167,7 +167,8 @@ irina_meta <- read_tsv('../data/bharti_irina_iPSC_RPE_time_series-/ids.txt') %>%
          CellType = case_when(grepl('iPS', Info) ~ 'iPSC',
                               TRUE ~ 'iRPE'),
          Class = NA,
-         Owner = 'Irina')
+         Owner = 'Irina',
+         Repo = 'bharti_irina_iPSC_RPE_time_series-') 
 ```
 # Peripheral - Fovea iRPE (Ortolan)
 repo: ortolan_rpe_macula_peripheral_scRNA
@@ -184,7 +185,8 @@ ortolan_meta <- ortolan_meta %>% rowwise() %>%
   mutate(Owner = 'Davide',
          CellType = 'iRPE',
          Class = case_when(grepl('DMSO', info) ~ 'Control',
-                           TRUE ~ 'Perturbed')) %>% 
+                           TRUE ~ 'Perturbed'),
+         Repo = 'ortolan_rpe_macula_peripheral_scRNA') %>% 
   rename(Sample = `Sample ID***`)
 
 ```
@@ -205,7 +207,8 @@ meta: done
 # write_tsv(meta, file = '../data/qin_piezo1_iRPE_2021/meta.tsv')
 qin_meta <- read_tsv('../data/qin_piezo1_iRPE_2021/meta.tsv') %>% 
   mutate(Owner = 'Qin',
-         CellType = 'iRPE') %>% 
+         CellType = 'iRPE',
+         Repo = 'qin_piezo1_iRPE_2021') %>% 
   rename(Sample = sample,
          Treatment = treatment)
 ```
@@ -220,7 +223,8 @@ dominik_meta <- readxl::read_xlsx('../data/dominik_WNT_iRPE_2021/Layout experime
   mutate(Class = case_when(Treatment == 'CTRL'  & !grepl("CEP", cell_line)~ 'Control',
                            TRUE ~ 'Perturbed'),
          Owner = 'Dominik',
-         CellType = 'iRPE')
+         CellType = 'iRPE',
+         Repo = 'dominik_WNT_iRPE_2021')
 
 ```
 
@@ -235,6 +239,8 @@ ogvfb_meta <- bind_rows(dominik_meta,
   relocate(Sample, cell_line, CellType, Treatment, Owner, Class) %>% 
   mutate(Class = case_when(Sample %in% c('KB5','KB9','KB10','KB12','2_RS','3_RS','9_RS','10_RS','16_RS','17_RS') ~ 'Degeneration',
          TRUE ~ Class))
+
+write_tsv(ogvfb_meta, file = '../data/ogvfb_full_meta.tsv')
 
 write_csv(ogvfb_meta %>% filter(Class == 'Control', CellType == 'iRPE'), file = '../data/control_meta_iRPE.csv')
 write_csv(ogvfb_meta %>% filter(Class == 'Control', CellType != 'iRPE'), file = '../data/control_meta_notRPE.csv')
@@ -268,3 +274,4 @@ ab <- cowplot::plot_grid(a, b, ncol = 2)
 cowplot::plot_grid(ab, c, ncol = 1, rel_heights = c(0.6,1))
 
 ```
+
