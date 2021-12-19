@@ -1,0 +1,57 @@
+---
+title: "Locate fastq"
+output: html_notebook
+---
+
+
+
+```{r}
+library(tidyverse)
+ogvfb_meta <- read_tsv('../data/ogvfb_full_meta.tsv')
+ogvfb_meta %>% filter(Class == 'Control', CellType == 'iRPE')
+
+ogvfb_meta %>% filter(Class == 'Control', CellType == 'iRPE') %>% select(Sample:Class, Repo) %>% DT::datatable()
+```
+
+
+```{r}
+oca_nisc <- read_csv('../data/oca_rna-seq/sequence_metadata.csv') %>% 
+  rowwise() %>% mutate(lane_sample = str_split(file_name, '_R[1/2]')[[1]][1]) %>% 
+  rowwise() %>% 
+  mutate(Lane = str_split(lane_sample, '_')[[1]][4],
+         FlowCell = str_split(lane_sample, '_')[[1]][1]) %>% 
+  ungroup()
+
+dominik_nisc <- read_tsv('../data/dominik_WNT_iRPE_2021/sample_table.tsv', col_names = c('Sample','fq')) %>% 
+  mutate(lane_sample = gsub('_R\\d+_001.fastq.gz','',fq)) %>% 
+  select(Sample, lane_sample) %>% 
+  unique()
+
+qin_nisc <- read_tsv('../data/qin_piezo1_iRPE_2021/sample_table.tsv', col_names = c('Sample','fq')) %>% 
+  mutate(lane_sample = gsub('_R\\d+_001.fastq.gz','',fq)) %>% 
+  select(Sample, lane_sample) %>% 
+  unique()
+
+davide_nisc <- read_tsv('../data/ortolan_rpe_macula_peripheral/sample_table.tsv', col_names = c('Sample','fq')) %>% 
+  mutate(lane_sample = gsub('_R\\d+_001.fastq.gz','',fq)) %>% 
+  select(Sample, lane_sample) %>% 
+  unique()
+
+nisc_meta <- bind_rows(oca_nisc %>% 
+                         select(submitted_name, lane_sample) %>% 
+                         unique() %>% 
+                         rename(Sample = submitted_name),
+                       qin_nisc,
+                       dominik_nisc,
+                       davide_nisc)
+
+ogvfb_meta %>% 
+  filter(Class == 'Control', CellType == 'iRPE') %>% 
+  select(Sample:Class, Repo, info) %>% 
+  mutate(Sample = case_when(Owner == 'Davide' ~ info,
+         TRUE ~ Sample)) %>% 
+  left_join(nisc_meta) %>% 
+  select(-info)
+
+```
+
