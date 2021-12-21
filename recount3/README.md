@@ -12,5 +12,5 @@ working dir: /data/mcgaugheyd/projects/nei/bharti/metaRPE
   - outputs in pump/[lane_file] so you can simultaneously run the pump commands and avoid snakemake rage
   - wait until the job finishes (the slower ones take 3-4 hours)
 8. mkdir pump_output; rsync --progress -rav pump/*/output/ pump_output # consolidate the pump outputs to one directory
-9. mkdir unify_output; cd unify_output; cp /home/mcgaugheyd/git/metaRPE/data/recount_sample_metadata.tsv . ; cp /home/mcgaugheyd/metaRPE/recount3/run_unify.sh .
+9. mkdir unify_output; mv recount-unify_1.0.9.sif unify_output; cd unify_output; cp /home/mcgaugheyd/git/metaRPE/data/recount_sample_metadata.tsv . ; cp /home/mcgaugheyd/metaRPE/recount3/run_unify.sh .
 10. sbatch --cpus-per-task 6 --mem=32G run_unify.sh
