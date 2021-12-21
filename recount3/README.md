@@ -3,7 +3,7 @@
 working dir: /data/mcgaugheyd/projects/nei/bharti/metaRPE
 
 1. cd /data/mcgaugheyd/projects/nei/bharti/metaRPE
-2. bash get_image.sh # get both pump and unify singularity images
+2. cp /home/mcgaugheyd/metaRPE/recount3/get_image.sh . ; bash get_image.sh # get both pump and unify singularity images
 3. bash ~/git/monorail-external/get_unify_refs.sh hg38 # unify refs
 4. bash ~/git/monorail-external/get_human_ref_indexes.sh
 5. mkdir references; mv hg38 references/; mv hg38_unify references/ # mv pump and unify ref folders to subfolder
