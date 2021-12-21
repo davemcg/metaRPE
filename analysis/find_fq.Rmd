@@ -12,8 +12,8 @@ ogvfb_meta %>% filter(Class == 'Control', CellType == 'iRPE')
 
 ogvfb_meta %>% filter(Class == 'Control', CellType == 'iRPE') %>% select(Sample:Class, Repo) %>% DT::datatable()
 ```
-
-
+# Add Lane Info
+## Control
 ```{r}
 oca_nisc <- read_csv('../data/oca_rna-seq/sequence_metadata.csv') %>% 
   rowwise() %>% mutate(lane_sample = str_split(file_name, '_R[1/2]')[[1]][1]) %>% 
@@ -45,7 +45,7 @@ nisc_meta <- bind_rows(oca_nisc %>%
                        dominik_nisc,
                        davide_nisc)
 
-ogvfb_meta %>% 
+ctrls <- ogvfb_meta %>% 
   filter(Class == 'Control', CellType == 'iRPE') %>% 
   select(Sample:Class, Repo, info) %>% 
   mutate(Sample = case_when(Owner == 'Davide' ~ info,
@@ -53,5 +53,8 @@ ogvfb_meta %>%
   left_join(nisc_meta) %>% 
   select(-info)
 
+ctrls
+# sbatch commands
+ctrls %>% mutate(sbatch = glue::glue("sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_recount.sh {lane_sample} {Owner}")) %>% pull(sbatch) %>% writeLines()
 ```
 
