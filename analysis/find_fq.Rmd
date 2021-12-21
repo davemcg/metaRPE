@@ -73,3 +73,10 @@ degeneration
 degeneration %>% mutate(sbatch = glue::glue("sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_recount.sh {lane_sample} {Owner}")) %>% pull(sbatch) %>% writeLines()
 ```
 
+# Recount meta
+```{r}
+out <- bind_rows(ctrls, degeneration) %>% select(Owner, lane_sample)
+colnames(out) <- c('study_id','sample_id')
+write_tsv(out, '../data/recount_sample_metadata.tsv')
+```
+
