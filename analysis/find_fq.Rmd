@@ -58,3 +58,18 @@ ctrls
 ctrls %>% mutate(sbatch = glue::glue("sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_recount.sh {lane_sample} {Owner}")) %>% pull(sbatch) %>% writeLines()
 ```
 
+
+```{r}
+degeneration <- ogvfb_meta %>% 
+  filter(Class == 'Degeneration', CellType == 'iRPE') %>% 
+  select(Sample:Class, Repo, info) %>% 
+  mutate(Sample = case_when(Owner == 'Davide' ~ info,
+         TRUE ~ Sample)) %>% 
+  left_join(nisc_meta) %>% 
+  select(-info)
+
+degeneration
+# sbatch commands
+degeneration %>% mutate(sbatch = glue::glue("sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_recount.sh {lane_sample} {Owner}")) %>% pull(sbatch) %>% writeLines()
+```
+
