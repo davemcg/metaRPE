@@ -107,7 +107,7 @@ Fairly complete instructions: https://github.com/langmead-lab/monorail-external#
     └── home_index
 ```
 
-Notes:
+## Notes:
 1. Top level folder is organism (human or mouse)
 2. Fill `annotation` folder by `wget`ing the files from Langmead and co
     - Example for G026 gene sums: `wget http://duffel.rail.bio/recount3/human/new_annotations/gene_sums/human.gene_sums.G026.gtf.gz`
@@ -121,7 +121,7 @@ Notes:
     - `metadata` doesn't need to be renamed
         - **HOWEVER** you need to "hand make" `metaRPE.recount_project.MD.gz`
           - My janky ass code that I ran in the unify output folder (see path above):
-          - zcat metadata/*/*/*recount_project.* | head -n 1 | gzip > metadata/metaRPE.recount_project.MD.gz # this grabs just the header
-          - zcat metadata/*/*/*recount_project.* | grep -v rail_id  | gzip >> metadata/metaRPE.recount_project.MD.gz # copy the rest of the meta sans the headers
+          - `zcat metadata/*/*/*recount_project.* | head -n 1 | gzip > metadata/metaRPE.recount_project.MD.gz # this grabs just the header`
+          - `zcat metadata/*/*/*recount_project.* | grep -v rail_id  | gzip >> metadata/metaRPE.recount_project.MD.gz # copy the rest of the meta sans the headers`
 5. The `home_index` file is just a text file with `data_sources/metaRPE` in it
     - replace `metaRPE` with whatever your "project" name is (again, `sra` is commonly used by the monorail/recount team)
