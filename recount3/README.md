@@ -43,6 +43,7 @@ Their example directory is here: http://snaptron.cs.jhu.edu/data/temp/recount3te
 Fairly complete instructions: https://github.com/langmead-lab/monorail-external#loading-custom-unifier-runs-into-recount3
 
 *My* directory structure (gaps are where I've deleted lines to make a touch shorter to view):
+```
 └── human
     ├── annotations
     │   ├── exon_sums
@@ -104,6 +105,7 @@ Fairly complete instructions: https://github.com/langmead-lab/monorail-external#
     │           │       └── metaRPE.recount_qc.karla.MD.gz
     │           └── metaRPE.recount_project.MD.gz
     └── home_index
+```
 
 Notes:
 1. Top level folder is organism (human or mouse)
