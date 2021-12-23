@@ -37,13 +37,19 @@ davide_nisc <- read_tsv('../data/ortolan_rpe_macula_peripheral/sample_table.tsv'
   select(Sample, lane_sample) %>% 
   unique()
 
+irina_nisc <- read_tsv('../data/bharti_irina_iPSC_RPE_time_series-/sample_table.tsv', col_names = c('Sample','fq')) %>% 
+  mutate(lane_sample = gsub('_[12].fq.gz','',fq)) %>% 
+  select(Sample, lane_sample) %>% 
+  unique()
+
 nisc_meta <- bind_rows(oca_nisc %>% 
                          select(submitted_name, lane_sample) %>% 
                          unique() %>% 
-                         rename(Sample = submitted_name),
+                         dplyr::rename(Sample = submitted_name),
                        qin_nisc,
                        dominik_nisc,
-                       davide_nisc)
+                       davide_nisc,
+                       irina_nisc)
 
 ctrls <- ogvfb_meta %>% 
   filter(Class == 'Control', CellType == 'iRPE') %>% 
@@ -73,9 +79,30 @@ degeneration
 degeneration %>% mutate(Owner = tolower(Owner)) %>% mutate(sbatch = glue::glue("sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_pump.sh {lane_sample} {Owner}")) %>% pull(sbatch) %>% writeLines()
 ```
 
+# Remainder (iRPE)
+```{r}
+remainder <- ogvfb_meta %>% 
+  filter(CellType == 'iRPE', !Class %in% c('Control','Degeneration')) %>% 
+  select(Sample:Class, Repo, info) %>% 
+  mutate(Sample = case_when(Owner == 'Davide' ~ info,
+         TRUE ~ Sample)) %>% 
+  left_join(nisc_meta) %>% 
+  select(-info)
+
+remainder
+# sbatch commands
+remainder %>% mutate(Owner = tolower(Owner)) %>% mutate(sbatch = glue::glue("sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_pump.sh {lane_sample} {Owner}")) %>% pull(sbatch) %>% writeLines()
+```
+```
+# Output new meta
+```{r}
+
+write_tsv(bind_rows(ctrls, degeneration, remainder) %>% mutate(Owner = tolower(Owner)), file = '../data/ogvfb_working_meta_seq_lane.tsv')
+
+```
 # Recount meta
 ```{r}
-out <- bind_rows(ctrls, degeneration) %>% mutate(Owner = tolower(Owner)) %>% select(Owner, lane_sample)
+out <- bind_rows(ctrls, degeneration, remainder) %>% mutate(Owner = tolower(Owner)) %>% select(Owner, lane_sample)
 colnames(out) <- c('study_id','sample_id')
 write_tsv(out, '../data/recount_sample_metadata.tsv')
 ```
