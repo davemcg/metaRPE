@@ -13,6 +13,12 @@ public RNA-seq and at least the compute part is identical.
 # How to run monorail pump and unify
 ## Done on NIH biowulf2
 
+## Observations, some unfounded and poorly understand
+1. Do not have fastq files (local) that have a non-character / non-number within two of the end of the "core name"
+        - e.g. A1_1_R1.fastq.gz and A1_2_R2.fastq.gz seem to cause issues with `unify` as `pump` uses the last two of the name (in this case _1) as a subfolder. Which *seems* to cause issues with some concatenation steps later
+2. Just make the project names one case, maybe lower? I had some weird issues when I have project names like "Bob" which were perhaps resolved when I changed them to "bob"?
+3. **VERY IMPORTANT:** `unify` will use *ALL THE FOLDERS/SAMPLES* in the `pump` output as input for `unify`. So you cannot "mix and match" custom unify output by just messing with the sample metadata file. 
+
 ## Workflow
 1. `cd /data/mcgaugheyd/projects/nei/bharti/metaRPE`
 2. `cp /home/mcgaugheyd/metaRPE/recount3/get_image.sh . ; bash get_image.sh # get both pump and unify singularity images`
