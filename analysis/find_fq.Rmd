@@ -97,9 +97,7 @@ remainder %>% mutate(Owner = tolower(Owner)) %>% mutate(sbatch = glue::glue("sba
 
 # Output new meta
 ```{r}
-
 write_tsv(bind_rows(ctrls, degeneration, remainder) %>% mutate(Owner = tolower(Owner)), file = '../data/ogvfb_working_meta_seq_lane.tsv')
-
 ```
 
 # Recount meta
