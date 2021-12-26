@@ -9,16 +9,17 @@ After the events of recount3/README.md we can now start the analysis
 library(tidyverse)
 library(matrixStats)
 library(ggrepel)
+base_dir <- '~/data/metaRPE_RSE/'
 load('../data/rse_gene_select.Rdata')
 
 # set XY ratio
-colData(rse_gene_select)$XYratio <- (colData(dds)$"recount_qc.aligned_reads%.chrx" + 0.01) / (colData(dds)$"recount_qc.aligned_reads%.chry" + 0.01)
+colData(rse_gene_select)$XYratio <- (colData(rse_gene_select)$"recount_qc.aligned_reads%.chrx" + 0.01) / (colData(rse_gene_select)$"recount_qc.aligned_reads%.chry" + 0.01)
 
 # make merged cell line / owner field
-colData(rse_gene_select)$CL_Owner <- paste(colData(dds)$cell_line, colData(dds)$Owner, sep = '_')
+colData(rse_gene_select)$CL_Owner <- paste(colData(rse_gene_select)$cell_line, colData(rse_gene_select)$Owner, sep = '_')
 
 # load in gff
-gff <- rtracklayer::import.gff('../recount3/RSE/human/annotations/gene_sums/human.gene_sums.G029.gtf.gz') %>% as_tibble()
+gff <- rtracklayer::import.gff(paste0(base_dir, '/human/annotations/gene_sums/human.gene_sums.G029.gtf.gz')) %>% as_tibble()
 ```
 
 # Metadata
@@ -26,7 +27,7 @@ gff <- rtracklayer::import.gff('../recount3/RSE/human/annotations/gene_sums/huma
 colData(rse_gene_select) %>% as_tibble() %>% select(Sample:DrugSimple) %>% janitor::remove_empty() %>% DT::datatable()
 ```
 # VST Transform and Build DESeq2 Object
-```{r}
+```{r, include=FALSE}
 dds <- DESeqDataSetFromMatrix(countData = assay(rse_gene_select, "counts"), colData = colData(rse_gene_select), design = ~Class + CL_Owner)
 DESeq2Table <- DESeq(dds, parallel = T)
 vst <- varianceStabilizingTransformation(DESeq2Table)
@@ -113,13 +114,20 @@ res <- results(DESeq2Table, contrast = c('Class','Control','Degeneration'))
 
 plotMA(res, ylim=c(-5,5))
 ```
-
+# Top 2000 Diff Gene
 
 ```{r}
-res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff) %>% filter(!is.na(padj)) %>% arrange(padj) %>% DT::datatable()
+res %>% 
+  as_tibble(rownames = 'gene_id') %>% 
+  left_join(gff) %>% 
+  filter(padj < 1e-5, abs(log2FoldChange) > 1) %>% 
+  head(2000) %>% 
+  arrange(padj) %>% 
+  DT::datatable()
 ```
 
-
+# Volcano
+Values on the right are more highly expressed in control iRPE vs degeneration iRPE
 ```{r, fig.width=5}
 volcano_maker <- function(df, title="Volcano Plot", pvalue='pvalue', padj='padj', logFC='log2FoldChange', gene_list = ''){
   df <- df[!is.na(df$pvalue),]
@@ -142,7 +150,7 @@ volcano_maker <- function(df, title="Volcano Plot", pvalue='pvalue', padj='padj'
     geom_vline(aes(xintercept=2),linetype="dotted") 
   plot
 }
-volcano_maker(df =res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff) %>% mutate(Gene = gene_name)) + coord_cartesian(xlim = c(-5,5))
+volcano_maker(df =res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff) %>% mutate(Gene = gene_name)) + coord_cartesian(xlim = c(-5,5), title= 'iRPE Ctrl vs Degeneration')
 ```
 
 
@@ -165,9 +173,14 @@ gene_counts %>% as_tibble(rownames = 'gene_id') %>%
   cowplot::theme_cowplot() +
   coord_flip()
 ```
+## RPE Markers
+```{r, fig.width=5, fig.height=14}
+rpe_markers <- scan('~/git/eyeMarkers/lists/bharti_rpe_markers.txt', what = 'character')
+source('../src/heatmap.R')
+make_hm(dds, rpe_markers, min_val = -5, max_val = 5)
+```
 
-
-## GO Enrichment of A vs B
+## GO Enrichment of Control vs Degeneration
 ```{r, fig.width=5}
 library(clusterProfiler)
 library(enrichplot)
@@ -201,4 +214,51 @@ Shows the "sets" of GO terms to increase understanding of what the diff gene set
 ego_pair <- pairwise_termsim(ego) 
 go_term_relationships <- emapplot(ego_pair,layout="kk") #+ ggtitle("Enriched GO Term Relationships")
 go_term_relationships
+```
+## Wikipathways
+```{r, fig.width=4, fig.height=7}
+# system("wget https://wikipathways-data.wmcloud.org/current/gmt/wikipathways-20211210-gmt-Homo_sapiens.gmt")
+wp2gene <- read.gmt('../wikipathways-20211210-gmt-Homo_sapiens.gmt')
+wp2gene <- wp2gene %>% tidyr::separate(term, c("name","version","wpid","org"), "%")
+wpid2gene <- wp2gene %>% dplyr::select(wpid, gene) #TERM2GENE
+wpid2name <- wp2gene %>% dplyr::select(wpid, name) #TERM2NAME
+ewp <- enricher(eg_diff_genes$ENTREZID,
+                TERM2GENE = wpid2gene,
+                TERM2NAME = wpid2name,
+                pvalueCutoff = 0.1)
+ewp_plot <- dotplot(ewp, showCategory=30) + ggtitle("Dotplot for WikiPathways")
+ewp_plot
+```
+
+
+## GSEA
+```{r, fig.width=5, fig.height=5}
+all_genes <- bitr(res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff) %>% pull(gene_name), fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Hs.eg.db")
+all_genes <- all_genes %>% left_join(res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff), by = c('SYMBOL' = 'gene_name'))
+logFC <- all_genes$log2FoldChange
+names(logFC) <- all_genes$ENTREZID
+logFC <- na.omit(logFC)
+logFC = sort(logFC, decreasing = TRUE)
+gse <- gseGO(geneList=logFC,
+             ont ="ALL",
+             keyType = "ENTREZID",
+             pvalueCutoff = 0.05,
+             OrgDb = org.Hs.eg.db,
+             pAdjustMethod = "BH")
+dotplot(gse, showCategory=10, split=".sign") + facet_grid(.~.sign)
+```
+
+## KEGG Pathway Enrichment
+```{r, fig.width=3}
+kk <- enrichKEGG(gene         = eg_diff_genes$ENTREZID, 
+                 universe = eg_universe$ENTREZID,
+                 organism     = 'hsa',
+                 pvalueCutoff = 0.1)
+dotplot(kk) + ggtitle("KEGG Pathway Enrichment") 
+```
+
+
+# Session Info
+```{r}
+devtools::session_info()
 ```
