@@ -155,7 +155,7 @@ volcano_maker(df =res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff) %>%
 
 
 
-## Dot Plots of Select Genes
+# Dot Plots of Select Genes
 ```{r, fig.width=5}
 gene_counts <- assay(dds, slot = 'counts')
 colnames(gene_counts) <- colData(dds)$Sample
@@ -173,14 +173,17 @@ gene_counts %>% as_tibble(rownames = 'gene_id') %>%
   cowplot::theme_cowplot() +
   coord_flip()
 ```
-## RPE Markers
+
+# Heatmap of Bharti RPE Markers
 ```{r, fig.width=5, fig.height=14}
 rpe_markers <- scan('~/git/eyeMarkers/lists/bharti_rpe_markers.txt', what = 'character')
 source('../src/heatmap.R')
 make_hm(dds, rpe_markers, min_val = -5, max_val = 5)
 ```
 
-## GO Enrichment of Control vs Degeneration
+# GO Enrichment
+
+Control vs Degeneration
 ```{r, fig.width=5}
 library(clusterProfiler)
 library(enrichplot)
@@ -200,7 +203,7 @@ p1 <- dotplot(ego, showCategory=30) + ggtitle("Dotplot for GO")
 p1
 ```
 
-### "CNET" Plot
+## "CNET" Plot
 Relationships between related GO terms with shared genes
 ```{r, fig.width=9, fig.height=6}
 geneList <- eg_diff_genes$log2FoldChange
@@ -208,14 +211,19 @@ names(geneList) <- eg_diff_genes$gene_id
 cnet <- cnetplot(ego, foldChange = geneList, showCategory =20 ) + scale_color_viridis_c(name = 'log2(FoldChange)')
 cnet
 ```
-### Enriched GO Term Relationships
+## Enriched GO Term Relationships
 Shows the "sets" of GO terms to increase understanding of what the diff gene sets are doing. There are many related GO terms.
 ```{r, fig.width=6}
 ego_pair <- pairwise_termsim(ego) 
 go_term_relationships <- emapplot(ego_pair,layout="kk") #+ ggtitle("Enriched GO Term Relationships")
 go_term_relationships
 ```
-## Wikipathways
+## Table
+```{r}
+egoOF_DB@result %>% as_tibble() %>%  filter(p.adjust < 0.05) %>%  DT::datatable()
+```
+
+# Wikipathways
 ```{r, fig.width=4, fig.height=7}
 # system("wget https://wikipathways-data.wmcloud.org/current/gmt/wikipathways-20211210-gmt-Homo_sapiens.gmt")
 wp2gene <- read.gmt('../wikipathways-20211210-gmt-Homo_sapiens.gmt')
@@ -230,8 +238,14 @@ ewp_plot <- dotplot(ewp, showCategory=30) + ggtitle("Dotplot for WikiPathways")
 ewp_plot
 ```
 
+## Table
+```{r}
+ewp <- setReadable(ewp, OrgDb =  org.Hs.eg.db, keyType = 'ENTREZID')
+ewp@result %>% DT::datatable()
+```
 
-## GSEA
+
+# GSEA
 ```{r, fig.width=5, fig.height=5}
 all_genes <- bitr(res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff) %>% pull(gene_name), fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Hs.eg.db")
 all_genes <- all_genes %>% left_join(res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff), by = c('SYMBOL' = 'gene_name'))
@@ -248,7 +262,12 @@ gse <- gseGO(geneList=logFC,
 dotplot(gse, showCategory=10, split=".sign") + facet_grid(.~.sign)
 ```
 
-## KEGG Pathway Enrichment
+## Table
+```{r}
+gse@result %>% as_tibble() %>% arrange(-abs(NES)) %>% filter(p.adjust < 0.05) %>%  DT::datatable()
+```
+
+# KEGG Pathway Enrichment
 ```{r, fig.width=3}
 kk <- enrichKEGG(gene         = eg_diff_genes$ENTREZID, 
                  universe = eg_universe$ENTREZID,
@@ -256,6 +275,13 @@ kk <- enrichKEGG(gene         = eg_diff_genes$ENTREZID,
                  pvalueCutoff = 0.1)
 dotplot(kk) + ggtitle("KEGG Pathway Enrichment") 
 ```
+
+## Table
+```{r}
+kk <- setReadable(kk, OrgDb =  org.Hs.eg.db, keyType = 'ENTREZID')
+kk@result %>% DT::datatable()
+```
+
 
 
 # Session Info
