@@ -1,10 +1,20 @@
 ---
-title: "Recount3 Analysis Time"
-output: html_notebook
+title: "metaRPE First Pass Analysis"
+output: 
+  html_notebook:
+    theme: flatly
+    toc: true
+    toc_float: true
+    code_folding: hide
 ---
 
 # Intro
-After the events of recount3/README.md we can now start the analysis
+I have used the "recount3/monorail" system to quantify the RNAseq samples. This will allow us to use arbitrary already-deposited RNAseq samples in future comparisons (e.g. GTEx). 
+
+# This setup
+Contains the Bharti-approved control and degeneration "internal" Bharti RNAseq datasets. I did call an audible an include Karla's mock shRNA samples as a control as I was getting a bit concerned we only have *one* study (Ruchi) with both control and degeneration samples. As we will see later, they seem like useful controls.
+
+
 ```{r}
 library(tidyverse)
 library(matrixStats)
@@ -87,7 +97,9 @@ ggplot(dataGG, aes(PC3, PC4, color=cell_line, shape=Class)) +
   scale_color_manual(values = pals::glasbey() %>% unname())
 ```
 
+# Heatmap Clustering of Sample <-> Sample relationships
 
+You see most degeneration and control samples cluster with each other
 ```{r, fig.height=4, fig.width=5}
 library(ComplexHeatmap)
 SampleDists <- dist(t(assay(vst)[select, ]))
@@ -175,11 +187,25 @@ gene_counts %>% as_tibble(rownames = 'gene_id') %>%
   coord_flip()
 ```
 
-# Heatmap of Bharti RPE Markers
+# Bharti RPE Markers
+## Heatmap
 ```{r, fig.width=5, fig.height=14}
 rpe_markers <- scan('~/git/eyeMarkers/lists/bharti_rpe_markers.txt', what = 'character')
 source('../src/heatmap.R')
 make_hm(dds, rpe_markers, min_val = -5, max_val = 5)
+```
+
+## RPE Markers Genes logFC table
+Again, positive means that the controls have higher expression than the degeneration samples
+
+If there are "missing" values, then a diff test was unable to be calculated due to missing information (zero / no expression in some samples). I haven't had time to delve into what is happening in these cases. 
+```{r}
+res %>% 
+  as_tibble(rownames = 'gene_id') %>% 
+  left_join(gff) %>% 
+  filter(gene_name %in% rpe_markers) %>% 
+  arrange(padj) %>% 
+  DT::datatable()
 ```
 
 # GO Enrichment
@@ -213,7 +239,7 @@ cnet <- cnetplot(ego, foldChange = geneList, showCategory =20 ) + scale_color_vi
 cnet
 ```
 ## Enriched GO Term Relationships
-Shows the "sets" of GO terms to increase understanding of what the diff gene sets are doing. There are many related GO terms.
+Shows the "sets" of related GO terms to increase understanding of what the diff gene sets are doing.
 ```{r, fig.width=6}
 ego_pair <- pairwise_termsim(ego) 
 go_term_relationships <- emapplot(ego_pair,layout="kk") #+ ggtitle("Enriched GO Term Relationships")
@@ -247,6 +273,9 @@ ewp@result %>% DT::datatable()
 
 
 # GSEA
+Similar to GO term enrichment, but uses the logFC to arrange genes instead of p values.
+
+"Activated" means sets of genes / terms that are more highly expressed in the controls relative to the degeneration samples.
 ```{r, fig.width=5, fig.height=5}
 all_genes <- bitr(res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff) %>% pull(gene_name), fromType="SYMBOL", toType="ENTREZID", OrgDb="org.Hs.eg.db")
 all_genes <- all_genes %>% left_join(res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff), by = c('SYMBOL' = 'gene_name'))
@@ -265,6 +294,7 @@ dotplot(gse, showCategory=10, split=".sign") + facet_grid(.~.sign)
 
 ## Table
 ```{r}
+gse <- setReadable(gse, OrgDb =  org.Hs.eg.db)
 gse@result %>% as_tibble() %>% arrange(-abs(NES)) %>% filter(p.adjust < 0.05) %>%  DT::datatable()
 ```
 
