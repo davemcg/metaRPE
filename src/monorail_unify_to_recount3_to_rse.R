@@ -61,4 +61,4 @@ rse_gene_select <- rse_gene[, keep_samples]
 colData(rse_gene_select)[karla_mock_shRNA,'Class'] <- c('Control','Control')
 # merge cellLine/owner
 colData(rse_gene_select)$CL_owner <- paste(colData(rse_gene_select)$cell_line, colData(rse_gene_select)$Owner, sep = '_' )
-save(rse_gene, file = 'data/rse_gene_select.Rdata')
+save(rse_gene_select, file = 'data/rse_gene_select.Rdata')
