@@ -9,6 +9,7 @@ After the events of recount3/README.md we can now start the analysis
 library(tidyverse)
 library(matrixStats)
 library(ggrepel)
+library(DESeq2)
 base_dir <- '~/data/metaRPE_RSE/'
 load('../data/rse_gene_select.Rdata')
 
@@ -150,7 +151,7 @@ volcano_maker <- function(df, title="Volcano Plot", pvalue='pvalue', padj='padj'
     geom_vline(aes(xintercept=2),linetype="dotted") 
   plot
 }
-volcano_maker(df =res %>% as_tibble(rownames = 'gene_id') %>% left_join(gff) %>% mutate(Gene = gene_name)) + coord_cartesian(xlim = c(-5,5), title= 'iRPE Ctrl vs Degeneration')
+volcano_maker(df =res %>% as_tibble(rownames = 'gene_id', title= 'iRPE Ctrl vs Degeneration') %>% left_join(gff) %>% mutate(Gene = gene_name)) + coord_cartesian(xlim = c(-5,5))
 ```
 
 
@@ -220,11 +221,11 @@ go_term_relationships
 ```
 ## Table
 ```{r}
-egoOF_DB@result %>% as_tibble() %>%  filter(p.adjust < 0.05) %>%  DT::datatable()
+ego@result %>% as_tibble() %>%  filter(p.adjust < 0.05) %>%  DT::datatable()
 ```
 
 # Wikipathways
-```{r, fig.width=4, fig.height=7}
+```{r, fig.width=6, fig.height=7}
 # system("wget https://wikipathways-data.wmcloud.org/current/gmt/wikipathways-20211210-gmt-Homo_sapiens.gmt")
 wp2gene <- read.gmt('../wikipathways-20211210-gmt-Homo_sapiens.gmt')
 wp2gene <- wp2gene %>% tidyr::separate(term, c("name","version","wpid","org"), "%")
