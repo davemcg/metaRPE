@@ -110,7 +110,7 @@ Fairly complete instructions: https://github.com/langmead-lab/monorail-external#
     │           │       ├── metaRPE.recount_project.karla.MD.gz
     │           │       └── metaRPE.recount_qc.karla.MD.gz
     │           └── metaRPE.recount_project.MD.gz
-    └── home_index
+    └── homes_index
 ```
 
 ## Notes:
@@ -129,5 +129,5 @@ Fairly complete instructions: https://github.com/langmead-lab/monorail-external#
           - My janky ass code that I ran in the unify output folder (see path above):
           - `zcat metadata/*/*/*recount_project.* | head -n 1 | gzip > metadata/metaRPE.recount_project.MD.gz # this grabs just the header`
           - `zcat metadata/*/*/*recount_project.* | grep -v rail_id  | gzip >> metadata/metaRPE.recount_project.MD.gz # copy the rest of the meta sans the headers`
-5. The `home_index` file is just a text file with `data_sources/metaRPE` in it
+5. The `homes_index` file is just a text file with `data_sources/metaRPE` in it
     - replace `metaRPE` with whatever your "project" name is (again, `sra` is commonly used by the monorail/recount team)
