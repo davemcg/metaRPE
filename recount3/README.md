@@ -131,3 +131,12 @@ Fairly complete instructions: https://github.com/langmead-lab/monorail-external#
           - `zcat metadata/*/*/*recount_project.* | grep -v rail_id  | gzip >> metadata/metaRPE.recount_project.MD.gz # copy the rest of the meta sans the headers`
 5. The `homes_index` file is just a text file with `data_sources/metaRPE` in it
     - replace `metaRPE` with whatever your "project" name is (again, `sra` is commonly used by the monorail/recount team)
+
+
+# tldr add new files
+1. rsync the fastq to `/data/mcgaugheyd/projects/nei/OGVFB_rna_seq/[organism]`
+        - `rsync -rav  --progress /data/mcgaugheyd/projects/nei/unicorns/fastq/* /data/mcgaugheyd/projects/nei/OGVFB_rna_seq/human/`
+2. `cd /data/mcgaugheyd/projects/nei/bharti/metaRPE`
+3. Run `pump` a la:
+        - `sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_pump.sh fastq_name_except_ending project_name`
+        - see `pump_commands.sh` 
