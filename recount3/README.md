@@ -25,7 +25,7 @@ public RNA-seq and at least the compute part is identical.
 3. `bash ~/git/monorail-external/get_unify_refs.sh hg38 # unify refs`
 4. `bash ~/git/monorail-external/get_human_ref_indexes.sh`
 5. `mkdir references; mv hg38 references/; mv hg38_unify references/ # mv pump and unify ref folders to subfolder`
-6. `cp /home/mcgaugheyd/metaRPE/recount3/run_pump.sh . ;cp /home/mcgaugheyd/metaRPE/recount3/pump_commands.sh . `
+6. `cp /home/mcgaugheyd/git/metaRPE/recount3/run_pump.sh . ;cp /home/mcgaugheyd/git/metaRPE/recount3/pump_commands.sh . `
 7. `bash pump_commands.sh # runs all pump jobs (invoking the run_pump.sh script)`
     - outputs in pump/[lane_file] so you can simultaneously run the pump commands and avoid overlapping snakemake job rage
     - wait until the job finishes (the slower ones take 2-3 hours)
@@ -135,8 +135,13 @@ Fairly complete instructions: https://github.com/langmead-lab/monorail-external#
 
 # tldr add new files
 1. rsync the fastq to `/data/mcgaugheyd/projects/nei/OGVFB_rna_seq/[organism]`
+
         - `rsync -rav  --progress /data/mcgaugheyd/projects/nei/unicorns/fastq/* /data/mcgaugheyd/projects/nei/OGVFB_rna_seq/human/`
-2. `cd /data/mcgaugheyd/projects/nei/bharti/metaRPE`
-3. Run `pump` a la:
+2. `cd /data/mcgaugheyd/projects/nei/bharti/metaRPE` (step 1 of workflow)
+3. Run `pump` a la: (step 7 of workflow)
+
         - `sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_pump.sh fastq_name_except_ending project_name`
         - see `pump_commands.sh` 
+4. rsync --progress -rav pump/*/output/ pump_output # consolidate the pump outputs to one directory`
+5. `mv unify_output unify_output_OLD; mkdir unify_output; mv unify_output_OLD/recount-unify_1.0.9.sif unify_output; cd unify_output; cp /home/mcgaugheyd/git/metaRPE/data/recount_sample_metadata.tsv . ; cp /home/mcgaugheyd/git/metaRPE/recount3/run_unify.sh . `
+6. `sbatch --cpus-per-task 6 --mem=32G run_unify.sh`
