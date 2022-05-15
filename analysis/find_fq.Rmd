@@ -40,6 +40,7 @@ davide_nisc <- read_tsv('../data/ortolan_rpe_macula_peripheral/sample_table.tsv'
 irina_nisc <- read_tsv('../data/bharti_irina_iPSC_RPE_time_series-/sample_table.tsv', col_names = c('Sample','fq')) %>% 
   mutate(lane_sample = gsub('_[12].fq.gz','',fq)) %>% 
   select(Sample, lane_sample) %>% 
+  mutate(lane_sample = gsub('_','_0',lane_sample)) %>% 
   unique()
 
 nisc_meta <- bind_rows(oca_nisc %>% 
@@ -93,13 +94,12 @@ remainder
 # sbatch commands
 remainder %>% mutate(Owner = tolower(Owner)) %>% mutate(sbatch = glue::glue("sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_pump.sh {lane_sample} {Owner}")) %>% pull(sbatch) %>% writeLines()
 ```
-```
+
 # Output new meta
 ```{r}
-
 write_tsv(bind_rows(ctrls, degeneration, remainder) %>% mutate(Owner = tolower(Owner)), file = '../data/ogvfb_working_meta_seq_lane.tsv')
-
 ```
+
 # Recount meta
 ```{r}
 out <- bind_rows(ctrls, degeneration, remainder) %>% mutate(Owner = tolower(Owner)) %>% select(Owner, lane_sample)

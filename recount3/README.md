@@ -13,6 +13,12 @@ public RNA-seq and at least the compute part is identical.
 # How to run monorail pump and unify
 ## Done on NIH biowulf2
 
+## Observations, some unfounded and poorly understand
+1. Do not have fastq files (local) that have a non-character / non-number within two of the end of the "core name"
+        - e.g. A1_1_R1.fastq.gz and A1_2_R2.fastq.gz seem to cause issues with `unify` as `pump` uses the last two of the name (in this case _1) as a subfolder. Which *seems* to cause issues with some concatenation steps later
+2. Just make the project names one case, maybe lower? I had some weird issues when I have project names like "Bob" which were perhaps resolved when I changed them to "bob"?
+3. **VERY IMPORTANT:** `unify` will use *ALL THE FOLDERS/SAMPLES* in the `pump` output as input for `unify`. So you cannot "mix and match" custom unify output by just messing with the sample metadata file. 
+
 ## Workflow
 1. `cd /data/mcgaugheyd/projects/nei/bharti/metaRPE`
 2. `cp /home/mcgaugheyd/metaRPE/recount3/get_image.sh . ; bash get_image.sh # get both pump and unify singularity images`
@@ -104,7 +110,7 @@ Fairly complete instructions: https://github.com/langmead-lab/monorail-external#
     │           │       ├── metaRPE.recount_project.karla.MD.gz
     │           │       └── metaRPE.recount_qc.karla.MD.gz
     │           └── metaRPE.recount_project.MD.gz
-    └── home_index
+    └── homes_index
 ```
 
 ## Notes:
@@ -123,5 +129,14 @@ Fairly complete instructions: https://github.com/langmead-lab/monorail-external#
           - My janky ass code that I ran in the unify output folder (see path above):
           - `zcat metadata/*/*/*recount_project.* | head -n 1 | gzip > metadata/metaRPE.recount_project.MD.gz # this grabs just the header`
           - `zcat metadata/*/*/*recount_project.* | grep -v rail_id  | gzip >> metadata/metaRPE.recount_project.MD.gz # copy the rest of the meta sans the headers`
-5. The `home_index` file is just a text file with `data_sources/metaRPE` in it
+5. The `homes_index` file is just a text file with `data_sources/metaRPE` in it
     - replace `metaRPE` with whatever your "project" name is (again, `sra` is commonly used by the monorail/recount team)
+
+
+# tldr add new files
+1. rsync the fastq to `/data/mcgaugheyd/projects/nei/OGVFB_rna_seq/[organism]`
+        - `rsync -rav  --progress /data/mcgaugheyd/projects/nei/unicorns/fastq/* /data/mcgaugheyd/projects/nei/OGVFB_rna_seq/human/`
+2. `cd /data/mcgaugheyd/projects/nei/bharti/metaRPE`
+3. Run `pump` a la:
+        - `sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_pump.sh fastq_name_except_ending project_name`
+        - see `pump_commands.sh` 
