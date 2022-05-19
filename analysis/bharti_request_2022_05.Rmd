@@ -1,0 +1,58 @@
+---
+title: "Bharti metaRPE Gene Request"
+output: 
+  html_notebook:
+    date: "`r Sys.Date()`"
+    theme: flatly
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+2022-05-19
+
+Hi David,
+ 
+Would it possible to make plots of expression levels for these genes (MI1, p53, p16, SOD1, SOD2, CFH, CFD, C3, C5, GPX1, GPX3) in the following four RPE samples: 1) Ruchi – HIHS (no drugs); 2) Ruchi – HS (no drugs); 3) Kelcy – CFH cohort; 4) Kelcy – CFH/ARMS2 cohort
+ 
+Thanks
+Kapil
+
+
+```{r}
+library(tidyverse)
+library(SummarizedExperiment)
+load('../data/rse_gene_02.Rdata')
+# load in gff
+base_dir <- '~/data/metaRPE_RSE_2022_05/'
+gff <- rtracklayer::import.gff(paste0(base_dir, '/human/annotations/gene_sums/human.gene_sums.G029.gtf.gz')) %>% as_tibble()
+
+ruchi_samples <- colData(rse_gene) %>% data.frame() %>% filter(Owner == 'ruchi', DrugSimple == 'None', serum %in% c('HIHS','HS'))
+kelcy_samples <-  colData(rse_gene) %>% data.frame() %>% filter(Owner == 'kelcy')
+
+subset <- c(row.names(ruchi_samples), row.names(kelcy_samples))
+rse_gene
+
+dat <- assay(rse_gene) %>% 
+  as_tibble(rownames = 'gene_id') %>% 
+  pivot_longer(-gene_id, names_to = 'Sample', values_to = 'Counts') %>% 
+  filter(Sample %in% subset) %>% 
+  left_join(colData(rse_gene) %>% 
+              as_tibble(), by = 'Sample') %>% 
+  left_join(gff) %>% 
+  as_tibble() %>% 
+  filter(gene_name %in% (c("BMI1", "TP53", "RP16", "SOD1", "SOD2", "CFH", "CFD", "C3", "C5", "GPX1", "GPX3")))
+
+
+
+dat %>% 
+  mutate(Set = case_when(!is.na(serum) ~ serum,
+                         !is.na(Genotype) ~ Genotype)) %>% 
+  ggplot(aes(x=Owner, y=log2(Counts), color = Set, group = Set)) + 
+  facet_wrap(~gene_name) + 
+  geom_boxplot() + 
+  geom_point(position = position_dodge2(width = 1)) +
+  cowplot::theme_cowplot()
+
+
+```

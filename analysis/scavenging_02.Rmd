@@ -1,0 +1,74 @@
+---
+title: "Scavenger Hunt"
+output: html_notebook
+---
+
+# Add Kelcy metadata
+
+# Load previous metadata
+```{r}
+library(tidyverse)
+orig_meta <-  read_tsv('../data/ogvfb_full_meta.tsv')
+```
+# ARMS2 CFH Mutation iRPE (Kelcy)
+repo: kelscey_cfh_arms2_risk_iRPE
+meta: done
+```{r}
+
+fq_files <- c("kk_10_HCLNKDSX3_19235443_S77_L004_R1_001.fastq.gz", "kk_10_HCLNKDSX3_19235443_S77_L004_R2_001.fastq.gz", "kk_11_HCLNKDSX3_19235445_S66_L004_R1_001.fastq.gz", "kk_11_HCLNKDSX3_19235445_S66_L004_R2_001.fastq.gz", "kk_12_HCLNKDSX3_19235447_S60_L004_R1_001.fastq.gz", "kk_12_HCLNKDSX3_19235447_S60_L004_R2_001.fastq.gz", "kk_13_HCLNKDSX3_19235449_S55_L004_R1_001.fastq.gz", "kk_13_HCLNKDSX3_19235449_S55_L004_R2_001.fastq.gz", "kk_14_HCLNKDSX3_19235451_S56_L004_R1_001.fastq.gz", "kk_14_HCLNKDSX3_19235451_S56_L004_R2_001.fastq.gz", "kk_15_HCLNKDSX3_19235455_S50_L004_R1_001.fastq.gz", "kk_15_HCLNKDSX3_19235455_S50_L004_R2_001.fastq.gz", "kk_16_HCLNKDSX3_19235457_S73_L004_R1_001.fastq.gz", "kk_16_HCLNKDSX3_19235457_S73_L004_R2_001.fastq.gz", "kk_17_HCLNKDSX3_19235459_S57_L004_R1_001.fastq.gz", "kk_17_HCLNKDSX3_19235459_S57_L004_R2_001.fastq.gz", "kk_18_HCLNKDSX3_19235461_S68_L004_R1_001.fastq.gz", "kk_18_HCLNKDSX3_19235461_S68_L004_R2_001.fastq.gz", "kk_19_HCLNKDSX3_19235463_S52_L004_R1_001.fastq.gz", "kk_19_HCLNKDSX3_19235463_S52_L004_R2_001.fastq.gz", "kk_1_HCLNKDSX3_19235433_S58_L004_R1_001.fastq.gz", "kk_1_HCLNKDSX3_19235433_S58_L004_R2_001.fastq.gz", "kk_20_HCLNKDSX3_19235465_S70_L004_R1_001.fastq.gz", "kk_20_HCLNKDSX3_19235465_S70_L004_R2_001.fastq.gz", "kk_21_HCLNKDSX3_19235467_S74_L004_R1_001.fastq.gz", "kk_21_HCLNKDSX3_19235467_S74_L004_R2_001.fastq.gz", "kk_22_HCLNKDSX3_19235469_S75_L004_R1_001.fastq.gz", "kk_22_HCLNKDSX3_19235469_S75_L004_R2_001.fastq.gz", "kk_23_HCLNKDSX3_19235471_S59_L004_R1_001.fastq.gz", "kk_23_HCLNKDSX3_19235471_S59_L004_R2_001.fastq.gz", "kk_24_HCLNKDSX3_19235473_S62_L004_R1_001.fastq.gz", "kk_24_HCLNKDSX3_19235473_S62_L004_R2_001.fastq.gz", "kk_25_HCLNKDSX3_19235475_S51_L004_R1_001.fastq.gz", "kk_25_HCLNKDSX3_19235475_S51_L004_R2_001.fastq.gz", "kk_26_HCLNKDSX3_19235477_S76_L004_R1_001.fastq.gz", "kk_26_HCLNKDSX3_19235477_S76_L004_R2_001.fastq.gz", "kk_27_HCLNKDSX3_19235479_S71_L004_R1_001.fastq.gz", "kk_27_HCLNKDSX3_19235479_S71_L004_R2_001.fastq.gz", "kk_28_HCLNKDSX3_19235481_S54_L004_R1_001.fastq.gz", "kk_28_HCLNKDSX3_19235481_S54_L004_R2_001.fastq.gz", "kk_29_HCLNKDSX3_19235483_S65_L004_R1_001.fastq.gz", "kk_29_HCLNKDSX3_19235483_S65_L004_R2_001.fastq.gz", "kk_2_HCLNKDSX3_19235435_S72_L004_R1_001.fastq.gz", "kk_2_HCLNKDSX3_19235435_S72_L004_R2_001.fastq.gz", "kk_30_HCLNKDSX3_19235485_S63_L004_R1_001.fastq.gz", "kk_30_HCLNKDSX3_19235485_S63_L004_R2_001.fastq.gz", "kk_3_HCLNKDSX3_19235437_S49_L004_R1_001.fastq.gz", "kk_3_HCLNKDSX3_19235437_S49_L004_R2_001.fastq.gz", "kk_4_HCLNKDSX3_19235439_S53_L004_R1_001.fastq.gz", "kk_4_HCLNKDSX3_19235439_S53_L004_R2_001.fastq.gz", "kk_5_HCLNKDSX3_19235453_S67_L004_R1_001.fastq.gz", "kk_5_HCLNKDSX3_19235453_S67_L004_R2_001.fastq.gz", "kk_6_HCLNKDSX3_19235427_S61_L004_R1_001.fastq.gz", "kk_6_HCLNKDSX3_19235427_S61_L004_R2_001.fastq.gz", "kk_7_HCLNKDSX3_19235429_S64_L004_R1_001.fastq.gz", "kk_7_HCLNKDSX3_19235429_S64_L004_R2_001.fastq.gz", "kk_8_HCLNKDSX3_19235431_S78_L004_R1_001.fastq.gz", "kk_8_HCLNKDSX3_19235431_S78_L004_R2_001.fastq.gz", "kk_9_HCLNKDSX3_19235441_S69_L004_R1_001.fastq.gz", "kk_9_HCLNKDSX3_19235441_S69_L004_R2_001.fastq.gz") %>% 
+  enframe() %>% 
+  mutate(Sample = str_extract(value, 'kk_\\d+'),
+         fastq_file = str_extract(value, 'kk\\w+') %>% gsub('_R1_001|_R2_001','',.)) %>% 
+  select(Sample, fastq_file) %>% 
+  unique()
+
+kelcy_meta <- read_csv('~/git/metaRPE//data/kelcy_cfh_arms2_meta.csv') %>% 
+  dplyr::rename(Sample = value,
+         cell_line = Line) %>% 
+  mutate(Class = 'Perturbed',
+         Owner = 'kelcy',
+         CellType = 'iRPE',
+         Repo = 'kelscey_cfh_arms2_risk_iRPE') %>% 
+  left_join(fq_files)
+
+```
+
+# Merge all
+```{r}
+ogvfb_meta <- bind_rows(orig_meta,
+                        kelcy_meta)
+
+write_tsv(ogvfb_meta, file = '../data/ogvfb_full_meta_02.tsv')
+
+write_csv(ogvfb_meta %>% filter(Class == 'Control', CellType == 'iRPE'), file = '../data/control_meta_iRPE_02.csv')
+write_csv(ogvfb_meta %>% filter(Class == 'Control', CellType != 'iRPE'), file = '../data/control_meta_notRPE_02.csv')
+
+write_csv(ogvfb_meta %>% filter(Class != 'Control', CellType == 'iRPE'), file = '../data/perturbed_meta_iRPE_02.csv')
+write_csv(ogvfb_meta %>% filter(Class != 'Control', CellType != 'iRPE'), file = '../data/perturbed_meta_notRPE_02.csv')
+```
+
+# Quick Plots
+```{r, fig.width=6, fig.height=8}
+a <- ogvfb_meta %>% ggplot(aes(x=Class)) + geom_bar(position = position_dodge()) + 
+  cowplot::theme_cowplot() +
+  facet_wrap(~CellType) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+b <- ogvfb_meta %>% ggplot(aes(x=Class, fill = Owner)) + geom_bar(position = position_dodge()) + 
+  cowplot::theme_cowplot() +
+  scale_fill_manual(values = pals::glasbey() %>% unname()) +
+  facet_wrap(~CellType) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+c <- ogvfb_meta %>% 
+  mutate(Line = case_when(grepl('OCA', cell_line) ~ 'OCA Patient',
+                          cell_line == 'Best 4C' ~ 'BEST4C',
+                          TRUE  ~ cell_line)) %>% 
+  ggplot(aes(x=Line, fill = Class)) + geom_bar(position = position_dodge()) + 
+  cowplot::theme_cowplot() +
+  scale_fill_manual(values = pals::alphabet2() %>% unname()) +
+  coord_flip()+
+  facet_wrap(~CellType)
+
+ab <- cowplot::plot_grid(a, b, ncol = 2)
+cowplot::plot_grid(ab, c, ncol = 1, rel_heights = c(0.6,1))
+
+```
