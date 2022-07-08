@@ -1,0 +1,31 @@
+value,Line,ID,Differential Time,Replicate,Genotype,name,Mit_Haplogroup
+kk_1,BB0064,cln93,wk5,1,CFH risk allele only,1,H
+kk_2,BB0064,cln93,wk5,2,CFH risk allele only,12,H
+kk_3,BB0064,cln93,wk5,3,CFH risk allele only,23,H
+kk_4,BB0066,cln423,wk5,1,CFH and ARMS2 risk allele,25,I
+kk_5,BB0066,cln423,wk5,2,CFH and ARMS2 risk allele,26,I
+kk_6,BB0066,cln423,wk5,3,CFH and ARMS2 risk allele,27,I
+kk_7,BB0152,cln88,wk5,1,CFH risk allele only,28,V
+kk_8,BB0152,cln88,wk5,2,CFH risk allele only,29,V
+kk_9,BB0152,cln88,wk5,3,CFH risk allele only,30,V
+kk_10,BB0072,cln089,wk5,1,CFH and ARMS2 risk allele,2,T
+kk_11,BB0072,cln089,wk5,2,CFH and ARMS2 risk allele,3,T
+kk_12,BB0072,cln089,wk5,3,CFH and ARMS2 risk allele,4,T
+kk_13,BB0108,cln5,wk5,1,CFH risk allele only,5,H
+kk_14,BB0108,cln5,wk5,2,CFH risk allele only,6,H
+kk_15,BB0108,cln5,wk5,3,CFH risk allele only,7,H
+kk_16,BB0073,cln13,wk5,1,CFH and ARMS2 risk allele,8,U
+kk_17,BB0073,cln13,wk5,2,CFH and ARMS2 risk allele,9,U
+kk_18,BB0073,cln13,wk5,3,CFH and ARMS2 risk allele,10,U
+kk_19,BB0038,cln66,wk5,1,CFH risk allele only,11,K
+kk_20,BB0038,cln66,wk5,2,CFH risk allele only,13,K
+kk_21,BB0038,cln66,wk5,3,CFH risk allele only,14,K
+kk_22,BB0109,cln64,wk5,1,CFH and ARMS2 risk allele,15,H
+kk_23,BB0109,cln64,wk5,2,CFH and ARMS2 risk allele,16,H
+kk_24,BB0109,cln64,wk5,3,CFH and ARMS2 risk allele,17,H
+kk_25,BB0045,cln130,wk5,1,CFH risk allele only,18,H
+kk_26,BB0045,cln130,wk5,2,CFH risk allele only,19,H
+kk_27,BB0045,cln130,wk5,3,CFH risk allele only,20,H
+kk_28,BB0088,cln22,wk5,1,CFH and ARMS2 risk allele,21,U
+kk_29,BB0088,cln22,wk5,2,CFH and ARMS2 risk allele,22,U
+kk_30,BB0088,cln22,wk5,3,CFH and ARMS2 risk allele,24,U
