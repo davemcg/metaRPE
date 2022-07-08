@@ -2,7 +2,7 @@
 library(tidyverse)
 library(recount3)
 library(DESeq2)
-options(recount3_url = '~/data/metaRPE_RSE_2022_05/')
+options(recount3_url = '~/data/metaRPE_RSE')
 
 hp <- available_projects()
 hp
@@ -29,6 +29,7 @@ rse_gene <- do.call(cbind, rse_list)
 lane_info <- read_tsv('data/ogvfb_working_meta_seq_lane.tsv')
 meta_info <- read_tsv('data/ogvfb_full_meta.tsv')
 kelcy <- read_tsv('data/ogvfb_full_meta_02.tsv') %>% filter(Owner == 'kelcy')
+mitra <-  read_tsv('data/ogvfb_full_meta_02.tsv') %>% filter(Owner == 'Mitra')
 info <- lane_info %>% 
   mutate(Class = case_when(is.na(Class) ~ 'Development', 
                            TRUE ~ Class)) %>% 
@@ -36,6 +37,7 @@ info <- lane_info %>%
               select(-cell_line, -CellType, -Treatment, -Owner, -Class, -Repo), 
             by = 'Sample') %>% 
   bind_rows(kelcy %>% dplyr::rename(lane_sample = fastq_file)) %>%  # add kelcy 2022 05
+  bind_rows(mitra %>% dplyr::mutate(lane_sample = gsub('\\/quant.sf','',file_path))) %>%  # add mitra 2022 07
   janitor::remove_empty()  # janitor removes columns where all NA
 
 
@@ -53,9 +55,10 @@ colData(rse_gene) <- cbind(colData(rse_gene), info)
 
 # Collapse technical (lane) replicates
 rse_gene <- collapseReplicates(rse_gene, groupby = colData(rse_gene)$Sample)
-save(rse_gene, file = 'data/rse_gene_02.Rdata') # updated to "02" for the kelcy data add on 2022-05-19
+save(rse_gene, file = 'data/rse_gene_03.Rdata') # updated to "02" for the kelcy data add on 2022-05-19
+                                                # updated to "03" for the mitra add on 2022-07-08
 
-########### NOT UPDATED WITH THE KELCY DATA UPDATE ##############
+########### NOT UPDATED WITH THE KELCY or MITRA DATA UPDATE ##############
 
 # Select Control and Degeneration Samples
 ## Only retain samples that Kapil labelled as controls or degeneration. I make one "audible" and include Karla's sham shRNA treatment as a control as I'd rather have more studies where was have both controls and degeneration samples. 
