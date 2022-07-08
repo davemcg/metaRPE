@@ -142,6 +142,13 @@ Fairly complete instructions: https://github.com/langmead-lab/monorail-external#
 
         - `sbatch --mem=35G --cpus-per-task 6 --time=8:00:00 run_pump.sh fastq_name_except_ending project_name`
         - see `pump_commands.sh` 
+        - or investigate my prototype snakefile at ~/git/monorail-external/Snakerail
 4. rsync --progress -rav pump/*/output/ pump_output # consolidate the pump outputs to one directory`
-5. `mv unify_output unify_output_OLD; mkdir unify_output; mv unify_output_OLD/recount-unify_1.0.9.sif unify_output; cd unify_output; cp /home/mcgaugheyd/git/metaRPE/data/recount_sample_metadata.tsv . ; cp /home/mcgaugheyd/git/metaRPE/recount3/run_unify.sh . `
-6. `sbatch --cpus-per-task 6 --mem=32G run_unify.sh`
+6. `mv unify_output unify_output_OLD; mkdir unify_output; mv unify_output_OLD/recount-unify_1.0.9.sif unify_output; cd unify_output; cp /home/mcgaugheyd/git/metaRPE/data/recount_sample_metadata.tsv . ; cp /home/mcgaugheyd/git/metaRPE/recount3/run_unify.sh . `
+7. `sbatch --cpus-per-task 6 --mem=32G run_unify.sh`
+8. Set up RSE for recount3:
+
+        - `cp ~/git/metaRPE/src/make_rse.sh .`
+        - `bash make_rse.sh bharti`
+9. Add metadata a la in `analysis/scavenging.Rmd`
+10. Tweak and run `src/monorail_to_rse.R` to add the metadata to the RSE
