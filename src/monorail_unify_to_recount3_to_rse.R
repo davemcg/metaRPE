@@ -27,7 +27,7 @@ rse_gene <- do.call(cbind, rse_list)
 # Import in my metadata and add to colData
 
 lane_info <- read_tsv('data/ogvfb_working_meta_seq_lane.tsv')
-meta_info <- read_tsv('data/ogvfb_full_meta.tsv')
+meta_info <- read_tsv('data/ogvfb_full_meta.tsv') %>% filter(!Owner %in% c('kelcy','Mitra'))
 kelcy <- read_tsv('data/ogvfb_full_meta_02.tsv') %>% filter(Owner == 'kelcy')
 mitra <-  read_tsv('data/ogvfb_full_meta_02.tsv') %>% filter(Owner == 'Mitra')
 info <- lane_info %>% 
