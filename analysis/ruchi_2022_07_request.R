@@ -12,7 +12,8 @@ colData(rse_gene)$column_field <- paste(colData(rse_gene)$Owner, colData(rse_gen
 
 
 samples <- row.names(colData(rse_gene) %>% data.frame() %>% dplyr::select(Sample:DrugSimple) %>% filter(DrugSimple != 'Drug' | !grepl('^HS',serum), Class == 'Control' ))
-sample_names <- colData(rse_gene) %>% data.frame() %>% filter(DrugSimple != 'Drug' | !grepl('^HS',serum),  Class == 'Control') %>% pull(column_field)
+samples <- c(samples, 'AG4','AG5', 'AG2', 'AG1') # ruchi request these specifically
+sample_names <- colData(rse_gene)[samples,]  %>% data.frame() %>% pull(column_field)
 
 
 matrix <- assay(rse_gene)[, samples]
@@ -20,4 +21,4 @@ colnames(matrix) <- sample_names
 
 
 matrix %>% as_tibble(rownames = 'gene_id') %>% left_join(gff %>% dplyr::select(type, gene_id, gene_type, gene_name)) %>% relocate(type, gene_id, gene_type, gene_name) %>% 
-  write_csv(file = 'data/ruchi_control_counts_02.csv')
+  write_csv(file = 'data/ruchi_control_counts_04.csv')
