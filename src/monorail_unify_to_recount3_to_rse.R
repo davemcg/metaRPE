@@ -12,11 +12,15 @@ hp
 ## load this custom create_rse script which fixes a little bug I found involving a mistmatched GTF and count matrix
 source('src/create_rse_manual.R')
 rse_list <- list()
-# t
 for (i in hp$project){
   print(i)
   rse_list[[i]] <- create_rse2(hp[hp$project == i, ],  type = 'gene', annotation = "gencode_v29")
   assay(rse_list[[i]], "counts") <- transform_counts(rse_list[[i]])
+  assay(rse_list[[i]], "tpm") <- recount::getTPM(rse_list[[i]], 
+                                                 length_var = 'score',
+                                                 mapped_var = 'recount_qc.star.all_mapped_reads') %>% 
+    data.frame()
+  assay(rse_list[[i]], "counts") <- compute_read_counts(rse_list[[i]])  # fill in UNSCALED read counts (`transform_counts` applies a 40e6 total scaling)
 }
 
 # create one rse for all samples
@@ -55,8 +59,9 @@ colData(rse_gene) <- cbind(colData(rse_gene), info)
 
 # Collapse technical (lane) replicates
 rse_gene <- collapseReplicates(rse_gene, groupby = colData(rse_gene)$Sample)
-save(rse_gene, file = 'data/rse_gene_03.Rdata') # updated to "02" for the kelcy data add on 2022-05-19
+save(rse_gene, file = 'data/rse_gene_04.Rdata') # updated to "02" for the kelcy data add on 2022-05-19
                                                 # updated to "03" for the mitra add on 2022-07-08
+                                                # updated to "04" to add in TPM data on 2022-11-15
 
 ########### NOT UPDATED WITH THE KELCY or MITRA DATA UPDATE ##############
 
